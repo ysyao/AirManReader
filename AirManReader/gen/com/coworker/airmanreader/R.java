@@ -911,9 +911,6 @@ containing a value of this type.
         public static final int abs__textfield_searchview_right_holo_light=0x7f02006e;
         public static final int abs__toast_frame=0x7f02006f;
         public static final int ic_launcher=0x7f020070;
-        public static final int ic_pulltorefresh_arrow=0x7f020071;
-        public static final int icon=0x7f020072;
-        public static final int pull_to_refresh_header_background=0x7f020073;
     }
     public static final class id {
         public static final int abs__action_bar=0x7f040020;
@@ -955,7 +952,7 @@ containing a value of this type.
         public static final int abs__textButton=0x7f040013;
         public static final int abs__title=0x7f04001b;
         public static final int abs__up=0x7f04000b;
-        public static final int action_settings=0x7f04003b;
+        public static final int action_settings=0x7f040036;
         public static final int article=0x7f040032;
         public static final int article_fragment=0x7f040035;
         public static final int disableHome=0x7f040009;
@@ -965,11 +962,6 @@ containing a value of this type.
         public static final int homeAsUp=0x7f040006;
         public static final int listMode=0x7f040002;
         public static final int normal=0x7f040001;
-        public static final int pull_to_refresh_header=0x7f040036;
-        public static final int pull_to_refresh_image=0x7f040038;
-        public static final int pull_to_refresh_progress=0x7f040037;
-        public static final int pull_to_refresh_text=0x7f040039;
-        public static final int pull_to_refresh_updated_at=0x7f04003a;
         public static final int showCustom=0x7f040008;
         public static final int showHome=0x7f040005;
         public static final int showTitle=0x7f040007;
@@ -1007,9 +999,8 @@ containing a value of this type.
         public static final int headline_view=0x7f030017;
         public static final int news_articles=0x7f030018;
         public static final int pull_to_refresh_fragment=0x7f030019;
-        public static final int pull_to_refresh_header=0x7f03001a;
-        public static final int sherlock_spinner_dropdown_item=0x7f03001b;
-        public static final int sherlock_spinner_item=0x7f03001c;
+        public static final int sherlock_spinner_dropdown_item=0x7f03001a;
+        public static final int sherlock_spinner_item=0x7f03001b;
     }
     public static final class menu {
         public static final int main=0x7f0b0000;
@@ -1054,19 +1045,15 @@ containing a value of this type.
         /**  Description of a share target (both in the list of such or the default share button) in a ShareActionProvider (share UI). [CHAR LIMIT=NONE] 
          */
         public static final int abs__shareactionprovider_share_with_application=0x7f090007;
-        public static final int action_settings=0x7f090012;
+        public static final int action_settings=0x7f09000e;
         public static final int app_name=0x7f09000d;
-        public static final int hello_world=0x7f090013;
-        public static final int pull_to_refresh_pull_label=0x7f09000e;
-        public static final int pull_to_refresh_refreshing_label=0x7f090010;
-        public static final int pull_to_refresh_release_label=0x7f09000f;
-        public static final int pull_to_refresh_tap_label=0x7f090011;
-        public static final int sina_uri=0x7f090018;
-        public static final int sohu_uri=0x7f090019;
-        public static final int store_info=0x7f090015;
-        public static final int store_place=0x7f090014;
-        public static final int store_uri=0x7f090016;
-        public static final int wangyi_uri=0x7f090017;
+        public static final int hello_world=0x7f09000f;
+        public static final int sina_uri=0x7f090014;
+        public static final int sohu_uri=0x7f090015;
+        public static final int store_info=0x7f090011;
+        public static final int store_place=0x7f090010;
+        public static final int store_uri=0x7f090012;
+        public static final int wangyi_uri=0x7f090013;
     }
     public static final class style {
         /** 

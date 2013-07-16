@@ -10,8 +10,6 @@ apply plugin: 'android'
 
 dependencies {
     compile fileTree(dir: 'libs', include: '*.jar')
-    compile project(':D::workspace:pulltorefresh')
-    compile project(':D::workspace:android-rss-master')
     compile project(':D::workspace:actionbarsherlock')
 }
 
