@@ -1,4 +1,4 @@
-package com.jimmy.rssreader;
+package com.jimmy.rssreader.ui.widget;
 
 import android.content.Context;
 import android.util.AttributeSet;

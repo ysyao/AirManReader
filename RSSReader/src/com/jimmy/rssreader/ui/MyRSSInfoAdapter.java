@@ -1,8 +1,11 @@
-package com.jimmy.rssreader;
+package com.jimmy.rssreader.ui;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.Inflater;
+
+import com.jimmy.rssreader.io.model.RSSInformation;
+
 
 import android.content.Context;
 import android.view.LayoutInflater;

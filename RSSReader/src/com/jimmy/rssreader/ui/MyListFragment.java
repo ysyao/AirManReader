@@ -1,4 +1,4 @@
-package com.jimmy.rssreader;
+package com.jimmy.rssreader.ui;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +11,9 @@ import org.mcsoxford.rss.RSSReaderException;
 
 import com.actionbarsherlock.app.SherlockListFragment;
 import com.google.gson.Gson;
+import com.jimmy.rssreader.R;
+import com.jimmy.rssreader.async.CheckNet;
+import com.jimmy.rssreader.io.model.RSSInformation;
 import com.markupartist.android.widget.PullToRefreshListView;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
@@ -34,6 +37,7 @@ public class MyListFragment extends SherlockListFragment {
 	OnItemSelected mListener;
 	SharedPreferences mSharedPreferences;
 	SharedPreferences.Editor mEditor;
+	
 
 	public interface OnItemSelected {
 		public void onItemSelected(int position);
@@ -51,6 +55,17 @@ public class MyListFragment extends SherlockListFragment {
 					+ "implements OnItemSelected");
 		}
 	}
+	
+	
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onCreate(savedInstanceState);
+		
+	}
+
+
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,

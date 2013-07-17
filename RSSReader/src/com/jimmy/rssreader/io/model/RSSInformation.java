@@ -1,4 +1,4 @@
-package com.jimmy.rssreader;
+package com.jimmy.rssreader.io.model;
 import java.util.Date;
 
 import android.net.Uri;

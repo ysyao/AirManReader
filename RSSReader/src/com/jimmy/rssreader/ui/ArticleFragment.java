@@ -1,4 +1,4 @@
-package com.jimmy.rssreader;
+package com.jimmy.rssreader.ui;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
@@ -17,6 +17,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.jimmy.rssreader.R;
+import com.jimmy.rssreader.io.UriDeserializer;
+import com.jimmy.rssreader.io.model.RSSInformation;
 
 import android.content.Context;
 import android.content.SharedPreferences;

@@ -1,4 +1,4 @@
-package com.jimmy.rssreader;
+package com.jimmy.rssreader.async;
 
 import android.content.Context;
 import android.net.ConnectivityManager;

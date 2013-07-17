@@ -1,9 +1,10 @@
-package com.jimmy.rssreader;
+package com.jimmy.rssreader.ui;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
-import com.jimmy.rssreader.MyListFragment.OnItemSelected;
+import com.jimmy.rssreader.R;
+import com.jimmy.rssreader.ui.MyListFragment.OnItemSelected;
 import com.markupartist.android.widget.PullToRefreshListView;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 

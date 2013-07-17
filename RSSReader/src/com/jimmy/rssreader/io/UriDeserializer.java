@@ -1,4 +1,4 @@
-package com.jimmy.rssreader;
+package com.jimmy.rssreader.io;
 
 import java.lang.reflect.Type;
 
