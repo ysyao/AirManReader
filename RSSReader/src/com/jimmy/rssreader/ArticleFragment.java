@@ -68,10 +68,10 @@ public class ArticleFragment extends Fragment {
 
 	public void updateArticleView(int position) {
 		SharedPreferences sharedPreferences = getActivity()
-				.getSharedPreferences(MyListFragment.STORE_PLACE,
+				.getSharedPreferences(getString(R.string.hold_container),
 						Context.MODE_PRIVATE);
 		String rssInfos = sharedPreferences.getString(
-				MyListFragment.STORE_NAME, "");
+				getString(R.string.store_name), "");
 
 		Gson gson = new GsonBuilder().registerTypeAdapter(Uri.class,
 				new UriDeserializer()).create();

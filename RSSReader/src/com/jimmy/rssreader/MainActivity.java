@@ -17,11 +17,7 @@ import android.support.v4.app.FragmentTransaction;
 
 public class MainActivity extends SherlockFragmentActivity implements
 		OnItemSelected {
-
-	public static final String WANGYI_URI_DEFAULT = "http://sports.163.com/special/00051K7F/rss_sportslq.xml";
-	public static final String SINA_URI = "http://rss.sina.com.cn/sports/basketball/nba.xml";
-	public static final String SOUHU_URI = "http://rss.sports.sohu.com/rss/nba.xml";
-
+	
 	@Override
 	public void onItemSelected(int position) {
 		// TODO Auto-generated method stub		
@@ -81,13 +77,13 @@ public class MainActivity extends SherlockFragmentActivity implements
 		// TODO Auto-generated method stub
 		switch (item.getItemId()) {
 		case 1:
-			replaceMyListFragment(WANGYI_URI_DEFAULT);
+			replaceMyListFragment(getString(R.string.WANGYI_URI));
 			break;
 		case 2:
-			replaceMyListFragment(SINA_URI);
+			replaceMyListFragment(getString(R.string.SINA_URI));
 			break;
 		case 3:
-			replaceMyListFragment(SOUHU_URI);
+			replaceMyListFragment(getString(R.string.SOUHU_URI));
 			break;
 		}
 		return true;
@@ -95,7 +91,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 	public void replaceMyListFragment(String uri) {
 		SharedPreferences sharedPreferences = getSharedPreferences(
-				MyListFragment.STORE_PLACE, Context.MODE_PRIVATE);
+				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		Editor editor = sharedPreferences.edit();
 		editor.putString("url", uri);
 		editor.commit();

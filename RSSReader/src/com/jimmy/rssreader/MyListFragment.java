@@ -30,9 +30,7 @@ import android.widget.ListView;
 
 public class MyListFragment extends SherlockListFragment {
 	public static final String TAG = "MyListFragment";
-	public static final String STORE_PLACE = "RSSINFO";
-	public static final String STORE_NAME = "rssInfos";
-	
+
 	OnItemSelected mListener;
 	SharedPreferences mSharedPreferences;
 	SharedPreferences.Editor mEditor;
@@ -54,27 +52,23 @@ public class MyListFragment extends SherlockListFragment {
 		}
 	}
 
-	
-	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
-		View view = inflater.inflate(R.layout.pull_to_refresh, container, false);
+		View view = inflater
+				.inflate(R.layout.pull_to_refresh, container, false);
 		return view;
 	}
-
-
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
-		
 
 		// Init every source
-		mSharedPreferences = getActivity().getSharedPreferences(STORE_PLACE,
-				Context.MODE_PRIVATE);
+		mSharedPreferences = getActivity().getSharedPreferences(
+				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		mEditor = mSharedPreferences.edit();
 
 		// Check the network
@@ -86,14 +80,15 @@ public class MyListFragment extends SherlockListFragment {
 		 * mInfos.size() == 0) { mInfos = fetchDataAndUpdateShpf(); }
 		 */
 		fetchDataAndUpdateShpf();
-		
-		 ((PullToRefreshListView) getListView()).setOnRefreshListener(new OnRefreshListener() {
-	            @Override
-	            public void onRefresh() {
-	                // Do work to refresh the list here.
-	                fetchDataAndUpdateShpf();
-	            }
-	        });
+
+		((PullToRefreshListView) getListView())
+				.setOnRefreshListener(new OnRefreshListener() {
+					@Override
+					public void onRefresh() {
+						// Do work to refresh the list here.
+						fetchDataAndUpdateShpf();
+					}
+				});
 	}
 
 	@Override
@@ -109,10 +104,10 @@ public class MyListFragment extends SherlockListFragment {
 		 */
 		Log.d(TAG,
 				"Around in fetchDataAndUpdateShpf------------------------------");
-		
+
 		String uri = mSharedPreferences.getString("url",
-				MainActivity.WANGYI_URI_DEFAULT);
-		
+				getString(R.string.WANGYI_URI));
+
 		RSSReader myReader = new RSSReader();
 		RSSAsyncTask myTask = new RSSAsyncTask(myReader);
 		myTask.execute(uri);
@@ -135,7 +130,7 @@ public class MyListFragment extends SherlockListFragment {
 		// Load data
 		Gson gson = new Gson();
 		String rssObjects = gson.toJson(infos);
-		mEditor.putString(STORE_NAME, rssObjects);
+		mEditor.putString(getString(R.string.store_name), rssObjects);
 		mEditor.commit();
 	}
 
@@ -159,18 +154,16 @@ public class MyListFragment extends SherlockListFragment {
 		public RSSAsyncTask(RSSReader reader) {
 			this.reader = reader;
 		}
-		
+
 		@Override
 		protected void onPreExecute() {
 			// TODO Auto-generated method stub
 			super.onPreExecute();
 			Log.d(TAG, "Around in onPreExecute------------------------------");
-			
+
 			this.dialog.setMessage("Please wait");
 			this.dialog.show();
 		}
-
-
 
 		@Override
 		protected List<RSSInformation> doInBackground(String... params) {
@@ -208,21 +201,21 @@ public class MyListFragment extends SherlockListFragment {
 			// TODO Auto-generated method stub
 			super.onPostExecute(infos);
 			Log.d(TAG, "Around in onPostExecute------------------------------");
-			
+
 			((PullToRefreshListView) getListView()).onRefreshComplete();
-			
-			if(dialog.isShowing()) {
+
+			if (dialog.isShowing()) {
 				dialog.dismiss();
 			}
-			//Update the sharedPreferences
+			// Update the sharedPreferences
 			updateRSSInfoPreferences(infos);
-			//ListView ready
+			// ListView ready
 			if (infos != null && infos.size() > 0) {
 				int layout = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ? android.R.layout.simple_list_item_activated_1
 						: android.R.layout.simple_list_item_1;
 
-				setListAdapter(new MyRSSInfoAdapter(getActivity(),
-						layout, infos));
+				setListAdapter(new MyRSSInfoAdapter(getActivity(), layout,
+						infos));
 			}
 		}
 	}
@@ -233,7 +226,7 @@ public class MyListFragment extends SherlockListFragment {
 		super.onListItemClick(l, v, position, id);
 		mListener.onItemSelected(position);
 	}
-	
+
 	private void checkNetworkConnection() {
 		boolean isConnected = CheckNet.checkNet(getActivity());
 		String packageName = getActivity().getPackageName();
