@@ -10,6 +10,9 @@ apply plugin: 'android'
 
 dependencies {
     compile fileTree(dir: 'libs', include: '*.jar')
+    compile project(':D::workspace:actionbarsherlock')
+    compile project(':D::workspace:pulltorefresh')
+    compile project(':D::workspace:android-rss-master')
 }
 
 android {
@@ -19,10 +22,10 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = ['src']
-            resources.srcDirs = ['src']
-            aidl.srcDirs = ['src']
-            renderscript.srcDirs = ['src']
+            java.srcDirs = ['src','libs']
+            resources.srcDirs = ['src','libs']
+            aidl.srcDirs = ['src','libs']
+            renderscript.srcDirs = ['src','libs']
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
         }

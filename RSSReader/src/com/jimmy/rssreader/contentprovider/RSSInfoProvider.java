@@ -119,19 +119,21 @@ public class RSSInfoProvider extends ContentProvider {
 		int updateRows = 0;
 		switch (uriType) {
 		case RSSINFOS:
-			updateRows = database.update(Tables.RSSINFOS, values, selection, selectionArgs);
+			updateRows = database.update(Tables.RSSINFOS, values, selection,
+					selectionArgs);
 			break;
 		case RSSINFOS_ID:
 			if (TextUtils.isEmpty(selection)) {
-				updateRows = database.update(Tables.RSSINFOS, values, RSSInfoColumn.INFO_ID
-						+ "=" + uri.getLastPathSegment(), null);
+				updateRows = database.update(Tables.RSSINFOS, values,
+						RSSInfoColumn.INFO_ID + "=" + uri.getLastPathSegment(),
+						null);
 			} else {
 				updateRows = database.update(
 						Tables.RSSINFOS,
 						values,
 						selection + " and " + RSSInfoColumn.INFO_ID + "="
 								+ uri.getLastPathSegment(), selectionArgs);
-			
+
 			}
 			break;
 		default:
@@ -147,16 +149,22 @@ public class RSSInfoProvider extends ContentProvider {
 		int uriType = sUriMatcher.match(uri);
 		SQLiteDatabase database = mOpenHelper.getWritableDatabase();
 		int deleteRows = 0;
-		
+
 		switch (uriType) {
-		case	RSSINFOS:
-			deleteRows = database.delete(Tables.RSSINFOS, selection, selectionArgs);
+		case RSSINFOS:
+			deleteRows = database.delete(Tables.RSSINFOS, selection,
+					selectionArgs);
 			break;
-		case	RSSINFOS_ID:
+		case RSSINFOS_ID:
 			if (TextUtils.isEmpty(selection)) {
-				deleteRows = database.delete(Tables.RSSINFOS, RSSInfoColumn.INFO_ID + "=" + uri.getLastPathSegment(), selectionArgs);
+				deleteRows = database.delete(Tables.RSSINFOS,
+						RSSInfoColumn.INFO_ID + "=" + uri.getLastPathSegment(),
+						selectionArgs);
 			} else {
-				deleteRows = database.delete(Tables.RSSINFOS, selection + " and " + RSSInfoColumn.INFO_ID + "=" + uri.getLastPathSegment(), selectionArgs);
+				deleteRows = database.delete(
+						Tables.RSSINFOS,
+						selection + " and " + RSSInfoColumn.INFO_ID + "="
+								+ uri.getLastPathSegment(), selectionArgs);
 			}
 			break;
 		default:
@@ -165,9 +173,10 @@ public class RSSInfoProvider extends ContentProvider {
 		getContext().getContentResolver().notifyChange(uri, null);
 		return deleteRows;
 	}
-	
+
 	public void checkColumns(String[] projection) {
-		String[] available = { RSSInfo.INFO_ID,RSSInfo.TITLE,RSSInfo.LINK,RSSInfo.PUB_DATE };
+		String[] available = { RSSInfo.INFO_ID, RSSInfo.TITLE, RSSInfo.LINK,
+				RSSInfo.PUB_DATE };
 
 		if (projection != null) {
 			HashSet<String> requestColumns = new HashSet<String>(

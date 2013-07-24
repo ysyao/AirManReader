@@ -1,4 +1,4 @@
-package com.jimmy.rssreader.io;
+/*package com.jimmy.rssreader.io;
 
 import java.lang.reflect.Type;
 
@@ -17,3 +17,4 @@ public class UriDeserializer implements JsonDeserializer<Uri> {
 		return Uri.parse(src.toString());
 	}
 }
+*/

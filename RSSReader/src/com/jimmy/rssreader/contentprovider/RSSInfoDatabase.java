@@ -19,7 +19,7 @@ public class RSSInfoDatabase extends SQLiteOpenHelper{
 	}
 
 	private static final String CREATE_TABLE = "CREATE TABLE "
-			+ Tables.RSSINFOS + " (" + BaseColumns._ID
+			+ Tables.RSSINFOS + " (" + RSSInfo.INFO_ID
 			+ " INTEGER PRIMARY KEY AUTOINCREMENT," 
 			+ RSSInfo.TITLE	+ " TEXT NOT NULL," 
 			+ RSSInfo.LINK + " TEXT NOT NULL,"

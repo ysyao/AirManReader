@@ -9,13 +9,11 @@ import org.mcsoxford.rss.RSSReader;
 import org.mcsoxford.rss.RSSReaderException;
 
 import com.actionbarsherlock.app.SherlockListFragment;
-import com.google.gson.Gson;
 import com.jimmy.rssreader.R;
 import com.jimmy.rssreader.async.CheckNet;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.io.model.RSSInformation;
 import com.markupartist.android.widget.PullToRefreshListView;
-import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -26,16 +24,15 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 
 public class MyListFragment extends SherlockListFragment implements LoaderCallbacks<Cursor>{
 	public static final String TAG = "MyListFragment";
@@ -56,7 +53,7 @@ public class MyListFragment extends SherlockListFragment implements LoaderCallba
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
 		// TODO Auto-generated method stub
 		String[] projection = {
-			BaseColumns._ID,
+			RSSInfo.INFO_ID,
 			RSSInfo.TITLE,
 			RSSInfo.PUB_DATE
 		};
@@ -163,7 +160,8 @@ public class MyListFragment extends SherlockListFragment implements LoaderCallba
 				R.id.pubdateTV
 		};
 		getActivity().getSupportLoaderManager().initLoader(0, null, this);
-		mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.rss_insert_row, null, from, to,0);
+		
+		mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.rss_insert_row, null, from, to, 0);
 		setListAdapter(mAdapter);
 	}
 
@@ -183,26 +181,6 @@ public class MyListFragment extends SherlockListFragment implements LoaderCallba
 		myTask.execute(uri);
 	}
 
-	private void updateRSSInfoPreferences(List<RSSInformation> infos) {
-		// Clear the sharepreferences
-		Log.d(TAG, "Inside the updateRSSInfoPreferences------------");
-		mEditor.clear();
-
-		// Data test
-		/*
-		 * RSSInformation info1 = new RSSInformation(); RSSInformation info2 =
-		 * new RSSInformation(); RSSInformation info3 = new RSSInformation();
-		 * info1.setTitle("Kobe"); info2.setTitle("Jordan");
-		 * info3.setTitle("James"); infos.add(info1); infos.add(info2);
-		 * infos.add(info3);
-		 */
-
-		// Load data
-		Gson gson = new Gson();
-		String rssObjects = gson.toJson(infos);
-		mEditor.putString(getString(R.string.store_name), rssObjects);
-		mEditor.commit();
-	}
 
 	// private List<RSSInformation> getRSSInfoFromSharePreferences() {
 	// List<RSSInformation> infos = new ArrayList<RSSInformation>();
@@ -277,8 +255,6 @@ public class MyListFragment extends SherlockListFragment implements LoaderCallba
 			if (dialog.isShowing()) {
 				dialog.dismiss();
 			}
-			// Update the sharedPreferences
-			updateRSSInfoPreferences(infos);
 			// ListView ready
 			if (infos != null && infos.size() > 0) {
 				int layout = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ? android.R.layout.simple_list_item_activated_1

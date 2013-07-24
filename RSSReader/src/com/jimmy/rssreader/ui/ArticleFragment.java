@@ -13,12 +13,7 @@ import java.util.regex.Pattern;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import com.jimmy.rssreader.R;
-import com.jimmy.rssreader.io.UriDeserializer;
 import com.jimmy.rssreader.io.model.RSSInformation;
 
 import android.content.Context;
@@ -76,7 +71,7 @@ public class ArticleFragment extends Fragment {
 		String rssInfos = sharedPreferences.getString(
 				getString(R.string.store_name), "");
 
-		Gson gson = new GsonBuilder().registerTypeAdapter(Uri.class,
+		/*Gson gson = new GsonBuilder().registerTypeAdapter(Uri.class,
 				new UriDeserializer()).create();
 		java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<List<RSSInformation>>() {
 		}.getType();
@@ -99,7 +94,7 @@ public class ArticleFragment extends Fragment {
 			webView.loadUrl(url);
 		} else {
 			webView.loadUrl("http://localhost");
-		}
+		}*/
 	}
 
 	@Override
@@ -111,14 +106,15 @@ public class ArticleFragment extends Fragment {
 	
 	private String fetchUrlFromUri (Uri uri) {
 		//Convert the Uri to HashMap
-		Type typeOfHashMap = new TypeToken<HashMap<String, String>>() {
+		/*Type typeOfHashMap = new TypeToken<HashMap<String, String>>() {
 		}.getType();
 		Gson gson = new GsonBuilder().create();
 		HashMap<String, String> newMap = gson.fromJson(uri.toString(),
 				typeOfHashMap);
 		
 		//According to the standar,get url through uriString
-		return newMap.get("uriString");
+		return newMap.get("uriString");*/
+		return null;
 	}
 	
 	private class MyWebViewClient extends WebViewClient {
