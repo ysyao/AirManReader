@@ -14,10 +14,12 @@ import com.jimmy.rssreader.async.CheckNet;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.io.model.RSSInformation;
 import com.markupartist.android.widget.PullToRefreshListView;
+import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -33,35 +35,30 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.Toast;
 
-public class MyListFragment extends SherlockListFragment implements LoaderCallbacks<Cursor>{
+public class MyListFragment extends SherlockListFragment implements
+		LoaderCallbacks<Cursor> {
 	public static final String TAG = "MyListFragment";
 
 	OnItemSelected mListener;
 	SharedPreferences mSharedPreferences;
 	SharedPreferences.Editor mEditor;
-	SimpleCursorAdapter	mAdapter;
-	
+	SimpleCursorAdapter mAdapter;
 
 	public interface OnItemSelected {
 		public void onItemSelected(int position);
 	}
-	
-	
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
 		// TODO Auto-generated method stub
-		String[] projection = {
-			RSSInfo.INFO_ID,
-			RSSInfo.TITLE,
-			RSSInfo.PUB_DATE
-		};
-		CursorLoader cursorLoader = new CursorLoader(getActivity(), RSSInfo.CONTENT_URI, projection, null, null, null);
+		String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
+				RSSInfo.PUB_DATE };
+		CursorLoader cursorLoader = new CursorLoader(getActivity(),
+				RSSInfo.CONTENT_URI, projection, null, null, null);
 		return cursorLoader;
 	}
-
-
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -69,15 +66,11 @@ public class MyListFragment extends SherlockListFragment implements LoaderCallba
 		mAdapter.swapCursor(data);
 	}
 
-
-
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
 		// TODO Auto-generated method stub
 		mAdapter.swapCursor(null);
 	}
-
-
 
 	@Override
 	public void onAttach(Activity activity) {
@@ -91,17 +84,13 @@ public class MyListFragment extends SherlockListFragment implements LoaderCallba
 					+ "implements OnItemSelected");
 		}
 	}
-	
-	
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
-		
+
 	}
-
-
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -130,18 +119,18 @@ public class MyListFragment extends SherlockListFragment implements LoaderCallba
 		 * mInfos = getRSSInfoFromSharePreferences(); if(mInfos == null ||
 		 * mInfos.size() == 0) { mInfos = fetchDataAndUpdateShpf(); }
 		 */
-		/*fetchDataAndUpdateShpf();*/
-		
+		/* fetchDataAndUpdateShpf(); */
+
 		fillData();
 
-		/*((PullToRefreshListView) getListView())
+		((PullToRefreshListView) getListView())
 				.setOnRefreshListener(new OnRefreshListener() {
 					@Override
 					public void onRefresh() {
 						// Do work to refresh the list here.
-						fetchDataAndUpdateShpf();
+						fetchData();
 					}
-				});*/
+				});
 	}
 
 	@Override
@@ -149,26 +138,20 @@ public class MyListFragment extends SherlockListFragment implements LoaderCallba
 		// TODO Auto-generated method stub
 		super.onDestroy();
 	}
-	
+
 	private void fillData() {
-		String[] from = {
-			RSSInfo.TITLE,
-			RSSInfo.PUB_DATE
-		};
-		int[] to = new int[]{
-				R.id.titleTV,
-				R.id.pubdateTV
-		};
+		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE };
+		int[] to = new int[] { R.id.titleTV, R.id.pubdateTV };
 		getActivity().getSupportLoaderManager().initLoader(0, null, this);
-		
-		mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.rss_insert_row, null, from, to, 0);
+
+		mAdapter = new SimpleCursorAdapter(getActivity(),
+				R.layout.rss_insert_row, null, from, to, 0);
 		setListAdapter(mAdapter);
 	}
 
-	public void fetchDataAndUpdateShpf() {
+	public void fetchData() {
 		/*
-		 * Need to do two things,one is fetch data with rss, the other is update
-		 * the sharedpreferences
+		 * Need to fetch data with rss
 		 */
 		Log.d(TAG,
 				"Around in fetchDataAndUpdateShpf------------------------------");
@@ -181,88 +164,44 @@ public class MyListFragment extends SherlockListFragment implements LoaderCallba
 		myTask.execute(uri);
 	}
 
-
-	// private List<RSSInformation> getRSSInfoFromSharePreferences() {
-	// List<RSSInformation> infos = new ArrayList<RSSInformation>();
-	// // Fetch the data from sharedPreferences
-	// String rssInfos = mSharedPreferences.getString(STORE_NAME, null);
-	// // Cast the string data to List
-	// Gson gson = new Gson();
-	// infos = gson.fromJson(rssInfos, new TypeToken<List<RSSInformation>>() {
-	// }.getType());
-	//
-	// return infos;
-	// }
-
-	private class RSSAsyncTask extends
-			AsyncTask<String, Object, List<RSSInformation>> {
+	private class RSSAsyncTask extends AsyncTask<String, Object, Integer> {
 		private RSSReader reader;
-		private ProgressDialog dialog = new ProgressDialog(getActivity());
 
 		public RSSAsyncTask(RSSReader reader) {
 			this.reader = reader;
 		}
 
 		@Override
-		protected void onPreExecute() {
+		protected Integer doInBackground(String... url) {
 			// TODO Auto-generated method stub
-			super.onPreExecute();
-			Log.d(TAG, "Around in onPreExecute------------------------------");
-
-			this.dialog.setMessage("Please wait");
-			this.dialog.show();
-		}
-
-		@Override
-		protected List<RSSInformation> doInBackground(String... params) {
-			// TODO Auto-generated method stub
-			Log.d(TAG, "Around in doInBackground------------------------------");
-
-			List<RSSItem> items = new ArrayList<RSSItem>();
-			List<RSSInformation> infos = new ArrayList<RSSInformation>();
-			// Fetch the data and load them in list of infos
+			int rowNum = 0;
 			try {
-				RSSFeed feed = reader.load(params[0]);
-				items = feed.getItems();
+				RSSFeed feed = reader.load(url[0]);
+				List<RSSItem> items = feed.getItems();
+				rowNum = items.size();
 				for (int i = 0; i < items.size(); i++) {
 					RSSItem item = items.get(i);
-					RSSInformation info = new RSSInformation();
-					info.setTitle(item.getTitle().trim());
-					info.setLink(item.getLink());
-					infos.add(info);
+					ContentValues values = new ContentValues();
+					values.put(RSSInfo.TITLE, item.getTitle());
+					values.put(RSSInfo.PUB_DATE, item.getPubDate().toString());
+					values.put(RSSInfo.LINK, item.getLink().toString());
+					getActivity().getContentResolver().insert(
+							RSSInfo.CONTENT_URI, values);
 				}
 			} catch (RSSReaderException e) {
 				// TODO: handle exception
 				e.printStackTrace();
 			}
-			return infos;
+			return rowNum;
 		}
 
 		@Override
-		protected void onProgressUpdate(Object... values) {
+		protected void onPostExecute(Integer result) {
 			// TODO Auto-generated method stub
-			super.onProgressUpdate(values);
-		}
-
-		@Override
-		protected void onPostExecute(List<RSSInformation> infos) {
-			// TODO Auto-generated method stub
-			super.onPostExecute(infos);
-			Log.d(TAG, "Around in onPostExecute------------------------------");
-
-			((PullToRefreshListView) getListView()).onRefreshComplete();
-
-			if (dialog.isShowing()) {
-				dialog.dismiss();
-			}
-			// ListView ready
-			if (infos != null && infos.size() > 0) {
-				int layout = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ? android.R.layout.simple_list_item_activated_1
-						: android.R.layout.simple_list_item_1;
-
-				setListAdapter(new MyRSSInfoAdapter(getActivity(), layout,
-						infos));
-			}
+			super.onPostExecute(result);
+			((PullToRefreshListView)getListView()).onRefreshComplete();
+			Toast.makeText(getActivity(), result + " data updated",
+					Toast.LENGTH_SHORT).show();
 		}
 	}
 
