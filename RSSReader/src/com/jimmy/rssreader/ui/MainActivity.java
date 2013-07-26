@@ -106,7 +106,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 		if (myListFragment != null) {
 			
 			//Restart the listfragment
-			myListFragment.fetchData();
+			myListFragment.mBoundService.fetchRSSInfos(uri);
 		} else {
 			fragmentTransaction.replace(R.id.fragment_container,
 					newMyListFragment);
