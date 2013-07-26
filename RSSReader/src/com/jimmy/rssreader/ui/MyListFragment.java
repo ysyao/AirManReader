@@ -143,7 +143,7 @@ public class MyListFragment extends SherlockListFragment implements
 		Log.d(TAG,
 				"Method:onCreateLoader;Using cursorLoader to load the data which queryed from contentresolver");
 		String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
-				RSSInfo.PUB_DATE };
+				RSSInfo.PUB_DATE, RSSInfo.LINK };
 		CursorLoader cursorLoader = new CursorLoader(getActivity(),
 				RSSInfo.CONTENT_URI, projection, null, null, null);
 		return cursorLoader;
@@ -163,8 +163,8 @@ public class MyListFragment extends SherlockListFragment implements
 
 	private void fillData() {
 		Log.d(TAG, "Method:fillData;Injecting data to cursorAdapter");
-		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE };
-		int[] to = new int[] { R.id.titleTV, R.id.pubdateTV };
+		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE, RSSInfo.LINK };
+		int[] to = new int[] { R.id.titleTV, R.id.pubdateTV, R.id.linkTV };
 		getActivity().getSupportLoaderManager().initLoader(0, null, this);
 
 		mAdapter = new SimpleCursorAdapter(getActivity(),

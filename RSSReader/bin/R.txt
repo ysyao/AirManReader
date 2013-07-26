@@ -284,7 +284,7 @@ int id abs__submit_area 0x7f05002f
 int id abs__textButton 0x7f050013
 int id abs__title 0x7f05001b
 int id abs__up 0x7f05000b
-int id action_settings 0x7f05003d
+int id action_settings 0x7f05003e
 int id article 0x7f050032
 int id article_fragment 0x7f050035
 int id disableHome 0x7f050009
@@ -292,6 +292,7 @@ int id edit_query 0x7f050026
 int id fragment_container 0x7f050033
 int id headlines_fragment 0x7f050034
 int id homeAsUp 0x7f050006
+int id linkTV 0x7f05003d
 int id listMode 0x7f050002
 int id normal 0x7f050001
 int id pubdateTV 0x7f05003c
