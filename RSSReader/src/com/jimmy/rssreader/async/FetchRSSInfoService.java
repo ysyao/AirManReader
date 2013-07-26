@@ -56,7 +56,7 @@ public class FetchRSSInfoService extends Service {
 
 		@Override
 		protected Integer doInBackground(String... url) {
-			// TODO Auto-generated method stub
+			Log.d(TAG, "Method:doInBackground;");
 			int rowNum = 0;
 			try {
 				RSSFeed feed = reader.load(url[0]);
@@ -77,14 +77,6 @@ public class FetchRSSInfoService extends Service {
 			}
 			return rowNum;
 		}
-
-		/*
-		 * @Override protected void onPostExecute(Integer result) { // TODO
-		 * Auto-generated method stub super.onPostExecute(result);
-		 * ((PullToRefreshListView)getListView()).onRefreshComplete();
-		 * Toast.makeText(getApplicationContext(), result + " data updated",
-		 * Toast.LENGTH_SHORT).show(); }
-		 */
 	}
 
 }

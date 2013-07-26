@@ -58,6 +58,8 @@ public class MyListFragment extends SherlockListFragment implements
 
 	@Override
 	public void onAttach(Activity activity) {
+		Log.d(TAG,
+				"Method:onAttach;Auto-checking the class information and registing contentprovider observer.");
 		// TODO Auto-generated method stub
 		super.onAttach(activity);
 		try {
@@ -67,22 +69,26 @@ public class MyListFragment extends SherlockListFragment implements
 			throw new ClassCastException(activity.toString() + " must"
 					+ "implements OnItemSelected");
 		}
-
+		// Registering content provider observer.
 		getActivity().getContentResolver().registerContentObserver(
 				RSSInfo.CONTENT_URI, true, mObserver);
 	}
 
 	@Override
 	public void onDetach() {
+		Log.d(TAG, "Method:onDetach;Unregisting contentprovider observer.");
 		// TODO Auto-generated method stub
 		super.onDetach();
+		// Unregistering the content provider observer.
 		getActivity().getContentResolver().unregisterContentObserver(mObserver);
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
+		Log.d(TAG,
+				"Method:onCreateView;Connect the view pull_to_refresh to MyListFragment");
+		// Connect the view pull_to_refresh to MyListFragment
 		View view = inflater
 				.inflate(R.layout.pull_to_refresh, container, false);
 		return view;
@@ -90,7 +96,8 @@ public class MyListFragment extends SherlockListFragment implements
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
+		Log.d(TAG,
+				"Method:onActivityCreated;Initalling the resources and Setting up the plugin PullToRefresh");
 		super.onCreate(savedInstanceState);
 
 		// Init every source
@@ -100,6 +107,7 @@ public class MyListFragment extends SherlockListFragment implements
 		mUri = mSharedPreferences.getString("url",
 				getString(R.string.WANGYI_URI));
 
+		// Setting up the little plugin here.
 		((PullToRefreshListView) getListView())
 				.setOnRefreshListener(new OnRefreshListener() {
 					@Override
@@ -112,7 +120,7 @@ public class MyListFragment extends SherlockListFragment implements
 
 	@Override
 	public void onStart() {
-		// TODO Auto-generated method stub
+		Log.d(TAG, "Method:onStart;Binding the Service");
 		super.onStart();
 		// Binding the FetchRSSInfoService
 		doBindService();
@@ -120,7 +128,7 @@ public class MyListFragment extends SherlockListFragment implements
 
 	@Override
 	public void onStop() {
-		// TODO Auto-generated method stub
+		Log.d(TAG, "Method:onStop;UnBinding the Service");
 		super.onStop();
 		// UnBinding the FetchRSSInfoService
 		doUnBindService();
@@ -132,7 +140,8 @@ public class MyListFragment extends SherlockListFragment implements
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		// TODO Auto-generated method stub
+		Log.d(TAG,
+				"Method:onCreateLoader;Using cursorLoader to load the data which queryed from contentresolver");
 		String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
 				RSSInfo.PUB_DATE };
 		CursorLoader cursorLoader = new CursorLoader(getActivity(),
@@ -142,17 +151,18 @@ public class MyListFragment extends SherlockListFragment implements
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-		// TODO Auto-generated method stub
+		Log.d(TAG, "Method:onLoadFinished;");
 		mAdapter.swapCursor(data);
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
-		// TODO Auto-generated method stub
+		Log.d(TAG, "Method:onLoaderReset;");
 		mAdapter.swapCursor(null);
 	}
 
 	private void fillData() {
+		Log.d(TAG, "Method:fillData;Injecting data to cursorAdapter");
 		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE };
 		int[] to = new int[] { R.id.titleTV, R.id.pubdateTV };
 		getActivity().getSupportLoaderManager().initLoader(0, null, this);
@@ -160,9 +170,9 @@ public class MyListFragment extends SherlockListFragment implements
 		mAdapter = new SimpleCursorAdapter(getActivity(),
 				R.layout.rss_insert_row, null, from, to, 0);
 		setListAdapter(mAdapter);
-		
-		//Config the PullToRefresh plugin
-		((PullToRefreshListView)getListView()).onRefreshComplete();
+
+		// Config the PullToRefresh plugin
+		((PullToRefreshListView) getListView()).onRefreshComplete();
 	}
 
 	@Override
@@ -176,14 +186,14 @@ public class MyListFragment extends SherlockListFragment implements
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
-			// TODO Auto-generated method stub
+			Log.d(TAG, "Method:onServiceDisconnected;");
 			isBounded = false;
 			mBoundService = null;
 		}
 
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
-			// TODO Auto-generated method stub
+			Log.d(TAG, "Method:onServiceConnected;");
 			isBounded = true;
 			mBoundService = ((FetchRSSInfoService.FetchRSSInfoBinder) service)
 					.getService();
@@ -191,12 +201,14 @@ public class MyListFragment extends SherlockListFragment implements
 	};
 
 	public void doBindService() {
+		Log.d(TAG, "Method:doBindService;");
 		Intent intent = new Intent(getActivity(), FetchRSSInfoService.class);
 		getActivity()
 				.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	public void doUnBindService() {
+		Log.d(TAG, "Method:doUnBindService;");
 		if (isBounded) {
 			getActivity().unbindService(mConnection);
 			isBounded = false;
@@ -207,7 +219,7 @@ public class MyListFragment extends SherlockListFragment implements
 
 		@Override
 		public void onChange(boolean selfChange) {
-			// TODO Auto-generated method stub
+			Log.d(TAG, "Method:ContentObserver's onChange;");
 			super.onChange(selfChange);
 			if (getActivity() == null) {
 				return;
