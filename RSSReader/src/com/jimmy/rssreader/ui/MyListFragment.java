@@ -12,6 +12,7 @@ import com.actionbarsherlock.app.SherlockListFragment;
 import com.jimmy.rssreader.R;
 import com.jimmy.rssreader.async.CheckNet;
 import com.jimmy.rssreader.async.FetchRSSInfoService;
+import com.jimmy.rssreader.async.FetchRSSInfoService.FetchRSSInfoBinder;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.io.model.RSSInformation;
 import com.markupartist.android.widget.PullToRefreshListView;
@@ -44,11 +45,13 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class MyListFragment extends SherlockListFragment implements
-		LoaderCallbacks<Cursor> {
+public class MyListFragment extends SherlockListFragment {
 
 	public static final String TAG = "MyListFragment";
 	public FetchRSSInfoService mBoundService;
+	private MyServiceConnection mConnection = new MyServiceConnection();
+	private MyCursorLoader mLoader = new MyCursorLoader();
+
 	private boolean isBounded = false;
 	OnItemSelected mListener;
 	SharedPreferences mSharedPreferences;
@@ -70,7 +73,7 @@ public class MyListFragment extends SherlockListFragment implements
 					+ "implements OnItemSelected");
 		}
 		// Registering content provider observer.
-		getActivity().getContentResolver().registerContentObserver(
+		activity.getContentResolver().registerContentObserver(
 				RSSInfo.CONTENT_URI, true, mObserver);
 	}
 
@@ -104,8 +107,14 @@ public class MyListFragment extends SherlockListFragment implements
 		mSharedPreferences = getActivity().getSharedPreferences(
 				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		mEditor = mSharedPreferences.edit();
-		mUri = mSharedPreferences.getString("url",
-				getString(R.string.WANGYI_URI));
+		mUri = getString(R.string.WANGYI_URI);
+	}
+
+	@Override
+	public void onStart() {
+		Log.d(TAG, "Method:onStart;DoBinding the Service");
+		super.onStart();
+		doBindService();
 
 		// Setting up the little plugin here.
 		((PullToRefreshListView) getListView())
@@ -113,17 +122,9 @@ public class MyListFragment extends SherlockListFragment implements
 					@Override
 					public void onRefresh() {
 						// Do work to refresh the list here.
-						mBoundService.fetchRSSInfos(mUri);
+						doBindService();
 					}
 				});
-	}
-
-	@Override
-	public void onStart() {
-		Log.d(TAG, "Method:onStart;Binding the Service");
-		super.onStart();
-		// Binding the FetchRSSInfoService
-		doBindService();
 	}
 
 	@Override
@@ -138,41 +139,44 @@ public class MyListFragment extends SherlockListFragment implements
 		public void onItemSelected(int position);
 	}
 
-	@Override
-	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		Log.d(TAG,
-				"Method:onCreateLoader;Using cursorLoader to load the data which queryed from contentresolver");
-		String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
-				RSSInfo.PUB_DATE, RSSInfo.LINK };
-		CursorLoader cursorLoader = new CursorLoader(getActivity(),
-				RSSInfo.CONTENT_URI, projection, null, null, null);
-		return cursorLoader;
-	}
+	public class MyCursorLoader implements LoaderCallbacks<Cursor> {
 
-	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-		Log.d(TAG, "Method:onLoadFinished;");
-		mAdapter.swapCursor(data);
-	}
+		@Override
+		public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
+			// TODO Auto-generated method stub
+			Log.d(TAG,
+					"Method:onCreateLoader;Using cursorLoader to load the data which queryed from contentresolver");
+			String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
+					RSSInfo.PUB_DATE, RSSInfo.LINK };
+			CursorLoader cursorLoader = new CursorLoader(getActivity(),
+					RSSInfo.CONTENT_URI, projection, null, null, null);
+			return cursorLoader;
+		}
 
-	@Override
-	public void onLoaderReset(Loader<Cursor> loader) {
-		Log.d(TAG, "Method:onLoaderReset;");
-		mAdapter.swapCursor(null);
+		@Override
+		public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+			// TODO Auto-generated method stub
+			Log.d(TAG, "Method:onLoadFinished;");
+			mAdapter.swapCursor(data);
+		}
+
+		@Override
+		public void onLoaderReset(Loader<Cursor> loader) {
+			// TODO Auto-generated method stub
+			Log.d(TAG, "Method:onLoaderReset;");
+			mAdapter.swapCursor(null);
+		}
+
 	}
 
 	private void fillData() {
 		Log.d(TAG, "Method:fillData;Injecting data to cursorAdapter");
 		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE, RSSInfo.LINK };
 		int[] to = new int[] { R.id.titleTV, R.id.pubdateTV, R.id.linkTV };
-		getActivity().getSupportLoaderManager().initLoader(0, null, this);
 
 		mAdapter = new SimpleCursorAdapter(getActivity(),
 				R.layout.rss_insert_row, null, from, to, 0);
 		setListAdapter(mAdapter);
-
-		// Config the PullToRefresh plugin
-		((PullToRefreshListView) getListView()).onRefreshComplete();
 	}
 
 	@Override
@@ -182,7 +186,7 @@ public class MyListFragment extends SherlockListFragment implements
 		mListener.onItemSelected(position);
 	}
 
-	private ServiceConnection mConnection = new ServiceConnection() {
+	public class MyServiceConnection implements ServiceConnection {
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
@@ -194,15 +198,18 @@ public class MyListFragment extends SherlockListFragment implements
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			Log.d(TAG, "Method:onServiceConnected;");
-			isBounded = true;
-			mBoundService = ((FetchRSSInfoService.FetchRSSInfoBinder) service)
-					.getService();
+			mBoundService = ((FetchRSSInfoBinder) service).getService();
+			
+			if(mBoundService != null) {
+				isBounded = true;
+			}
 		}
 	};
 
 	public void doBindService() {
 		Log.d(TAG, "Method:doBindService;");
 		Intent intent = new Intent(getActivity(), FetchRSSInfoService.class);
+		intent.putExtra("uri", mUri);
 		getActivity()
 				.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 	}
@@ -224,7 +231,12 @@ public class MyListFragment extends SherlockListFragment implements
 			if (getActivity() == null) {
 				return;
 			}
+			//When database has updates,the loader is auto created.
+			getActivity().getSupportLoaderManager().restartLoader(0, null,
+					mLoader);
 			fillData();
+			// Config the PullToRefresh plugin
+			((PullToRefreshListView) getListView()).onRefreshComplete();
 		}
 	};
 }

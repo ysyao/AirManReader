@@ -18,6 +18,7 @@ import android.support.v4.app.FragmentTransaction;
 
 public class MainActivity extends SherlockFragmentActivity implements
 		OnItemSelected {
+	MyListFragment mMyListFragment;
 	
 	@Override
 	public void onItemSelected(int position) {
@@ -52,12 +53,11 @@ public class MainActivity extends SherlockFragmentActivity implements
 		setContentView(R.layout.news_articles);
 
 		if (findViewById(R.id.fragment_container) != null) {
-			MyListFragment firstFragment = new MyListFragment();
+			mMyListFragment = new MyListFragment();
 			FragmentTransaction fragmentTransaction = getSupportFragmentManager()
 					.beginTransaction();
-			fragmentTransaction.add(R.id.fragment_container, firstFragment);
+			fragmentTransaction.add(R.id.fragment_container, mMyListFragment);
 			fragmentTransaction.commit();
-			
 		}
 	}
 
@@ -91,6 +91,8 @@ public class MainActivity extends SherlockFragmentActivity implements
 	}
 
 	public void replaceMyListFragment(String uri) {
+		int fragmentId = 0;
+		
 		SharedPreferences sharedPreferences = getSharedPreferences(
 				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		Editor editor = sharedPreferences.edit();
@@ -99,19 +101,20 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 		FragmentTransaction fragmentTransaction = getSupportFragmentManager()
 				.beginTransaction();
-		MyListFragment myListFragment = (MyListFragment) getSupportFragmentManager()
+		mMyListFragment = (MyListFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.headlines_fragment);
 		MyListFragment newMyListFragment = new MyListFragment();
 
-		if (myListFragment != null) {
-			//Restart the listfragment
-			myListFragment.mBoundService.fetchRSSInfos(uri);
+		if (mMyListFragment != null) {
+			//Restart the mMyListFragment
+			fragmentId = R.id.headlines_fragment;
 		} else {
-			fragmentTransaction.replace(R.id.fragment_container,
-					newMyListFragment);
-			fragmentTransaction.addToBackStack(null);
-			fragmentTransaction.commit();
+			fragmentId = R.id.fragment_container;
 		}
+		
+		fragmentTransaction.replace(fragmentId, newMyListFragment);
+		fragmentTransaction.addToBackStack(null);
+		fragmentTransaction.commit();
 	}
 
 }

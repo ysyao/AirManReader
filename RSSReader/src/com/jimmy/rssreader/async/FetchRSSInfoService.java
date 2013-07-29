@@ -24,27 +24,45 @@ import android.widget.Toast;
 
 public class FetchRSSInfoService extends Service {
 	public static final String TAG = "FetchRSSInfoService";
+	FetchRSSInfoBinder mBinder;
+	RSSReader mReader;
+	RSSAsyncTask mTask;
+	String uri = "";
+	
+	
+	@Override
+	public void onCreate() {
+		// TODO Auto-generated method stub
+		Log.d(TAG, "onCreate method inside,the uri is " + uri);
+		super.onCreate();
+		mBinder = new FetchRSSInfoBinder();
+		mReader = new RSSReader();
+		mTask = new RSSAsyncTask(mReader);
+		mTask.execute(uri);
+	}
+
+
+	@Override
+	public void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		mTask.cancel(true);
+		mReader.close();
+	}
 
 	public class FetchRSSInfoBinder extends Binder {
 		public FetchRSSInfoService getService() {
+			Log.d(TAG, "Method:getService()");
 			return FetchRSSInfoService.this;
 		}
 	}
 
-	FetchRSSInfoBinder mBinder = new FetchRSSInfoBinder();
-
 	@Override
-	public IBinder onBind(Intent arg0) {
+	public IBinder onBind(Intent intent) {
 		// TODO Auto-generated method stub
+		Log.d(TAG, "Method:onBind()");
+		uri = intent.getExtras().getString("uri");
 		return mBinder;
-	}
-
-	public void fetchRSSInfos(String uri) {
-		Log.d(TAG, "Around in fetchRSSInfos------------------------------");
-
-		RSSReader myReader = new RSSReader();
-		RSSAsyncTask myTask = new RSSAsyncTask(myReader);
-		myTask.execute(uri);
 	}
 
 	private class RSSAsyncTask extends AsyncTask<String, Object, Integer> {

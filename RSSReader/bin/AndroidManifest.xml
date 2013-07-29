@@ -29,6 +29,8 @@
         <provider 
             android:name="com.jimmy.rssreader.contentprovider.RSSInfoProvider"
             android:authorities="com.jimmy.rssreader" />
+        <service 
+            android:name="com.jimmy.rssreader.async.FetchRSSInfoService" />
     </application>
 
 </manifest>
