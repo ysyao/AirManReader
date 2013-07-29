@@ -12,7 +12,9 @@ import com.actionbarsherlock.app.SherlockListFragment;
 import com.jimmy.rssreader.R;
 import com.jimmy.rssreader.async.CheckNet;
 import com.jimmy.rssreader.async.FetchRSSInfoService;
+import com.jimmy.rssreader.async.TestService;
 import com.jimmy.rssreader.async.FetchRSSInfoService.FetchRSSInfoBinder;
+import com.jimmy.rssreader.async.TestService.TestBinder;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.io.model.RSSInformation;
 import com.markupartist.android.widget.PullToRefreshListView;
@@ -34,6 +36,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -48,7 +51,7 @@ import android.widget.Toast;
 public class MyListFragment extends SherlockListFragment {
 
 	public static final String TAG = "MyListFragment";
-	public FetchRSSInfoService mBoundService;
+	public TestService mBoundService;
 	private MyServiceConnection mConnection = new MyServiceConnection();
 	private MyCursorLoader mLoader = new MyCursorLoader();
 
@@ -72,7 +75,6 @@ public class MyListFragment extends SherlockListFragment {
 			throw new ClassCastException(activity.toString() + " must"
 					+ "implements OnItemSelected");
 		}
-		// Registering content provider observer.
 		activity.getContentResolver().registerContentObserver(
 				RSSInfo.CONTENT_URI, true, mObserver);
 	}
@@ -82,7 +84,6 @@ public class MyListFragment extends SherlockListFragment {
 		Log.d(TAG, "Method:onDetach;Unregisting contentprovider observer.");
 		// TODO Auto-generated method stub
 		super.onDetach();
-		// Unregistering the content provider observer.
 		getActivity().getContentResolver().unregisterContentObserver(mObserver);
 	}
 
@@ -108,23 +109,24 @@ public class MyListFragment extends SherlockListFragment {
 				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		mEditor = mSharedPreferences.edit();
 		mUri = getString(R.string.WANGYI_URI);
-	}
-
-	@Override
-	public void onStart() {
-		Log.d(TAG, "Method:onStart;DoBinding the Service");
-		super.onStart();
-		doBindService();
-
+		
 		// Setting up the little plugin here.
 		((PullToRefreshListView) getListView())
 				.setOnRefreshListener(new OnRefreshListener() {
 					@Override
 					public void onRefresh() {
 						// Do work to refresh the list here.
+						doUnBindService();
 						doBindService();
 					}
 				});
+	}
+
+	@Override
+	public void onStart() {
+		Log.d(TAG, "Method:onStart;DoBinding the Service,and load data to loader");
+		super.onStart();
+		doBindService();
 	}
 
 	@Override
@@ -166,17 +168,20 @@ public class MyListFragment extends SherlockListFragment {
 			Log.d(TAG, "Method:onLoaderReset;");
 			mAdapter.swapCursor(null);
 		}
-
 	}
 
 	private void fillData() {
 		Log.d(TAG, "Method:fillData;Injecting data to cursorAdapter");
 		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE, RSSInfo.LINK };
 		int[] to = new int[] { R.id.titleTV, R.id.pubdateTV, R.id.linkTV };
-
+		
+		getActivity().getSupportLoaderManager().initLoader(0, null, mLoader);
 		mAdapter = new SimpleCursorAdapter(getActivity(),
 				R.layout.rss_insert_row, null, from, to, 0);
 		setListAdapter(mAdapter);
+		
+		// Config the PullToRefresh plugin
+		((PullToRefreshListView) getListView()).onRefreshComplete();
 	}
 
 	@Override
@@ -198,20 +203,24 @@ public class MyListFragment extends SherlockListFragment {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			Log.d(TAG, "Method:onServiceConnected;");
-			mBoundService = ((FetchRSSInfoBinder) service).getService();
-			
-			if(mBoundService != null) {
+			mBoundService = ((TestBinder) service).getService();
+
+			if (mBoundService != null) {
 				isBounded = true;
+				mBoundService.createTestData();
 			}
 		}
 	};
 
 	public void doBindService() {
 		Log.d(TAG, "Method:doBindService;");
-		Intent intent = new Intent(getActivity(), FetchRSSInfoService.class);
-		intent.putExtra("uri", mUri);
-		getActivity()
-				.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+		/* Intent intent = new Intent(getActivity(), FetchRSSInfoService.class); */
+		Intent testIntent = new Intent(getActivity(), TestService.class);
+		testIntent.putExtra("link", mUri);
+		testIntent.putExtra("title", "Kid");
+		testIntent.putExtra("date", "2013/07/29");
+		getActivity().bindService(testIntent, mConnection,
+				Context.BIND_AUTO_CREATE);
 	}
 
 	public void doUnBindService() {
@@ -221,9 +230,8 @@ public class MyListFragment extends SherlockListFragment {
 			isBounded = false;
 		}
 	}
-
+	
 	private final ContentObserver mObserver = new ContentObserver(new Handler()) {
-
 		@Override
 		public void onChange(boolean selfChange) {
 			Log.d(TAG, "Method:ContentObserver's onChange;");
@@ -231,12 +239,7 @@ public class MyListFragment extends SherlockListFragment {
 			if (getActivity() == null) {
 				return;
 			}
-			//When database has updates,the loader is auto created.
-			getActivity().getSupportLoaderManager().restartLoader(0, null,
-					mLoader);
 			fillData();
-			// Config the PullToRefresh plugin
-			((PullToRefreshListView) getListView()).onRefreshComplete();
 		}
 	};
 }

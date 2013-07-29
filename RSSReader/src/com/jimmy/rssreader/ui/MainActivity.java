@@ -4,6 +4,7 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.jimmy.rssreader.R;
+import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.ui.MyListFragment.OnItemSelected;
 import com.markupartist.android.widget.PullToRefreshListView;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
@@ -13,13 +14,33 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.database.ContentObserver;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 
 public class MainActivity extends SherlockFragmentActivity implements
 		OnItemSelected {
+	private static final String TAG = "MainActivity";
 	MyListFragment mMyListFragment;
-	
+
+	@Override
+	protected void onCreate(Bundle arg0) {
+		// TODO Auto-generated method stub
+		super.onCreate(arg0);
+		setTheme(R.style.Theme_Sherlock);
+		setContentView(R.layout.news_articles);
+
+		if (findViewById(R.id.fragment_container) != null) {
+			mMyListFragment = new MyListFragment();
+			FragmentTransaction fragmentTransaction = getSupportFragmentManager()
+					.beginTransaction();
+			fragmentTransaction.add(R.id.fragment_container, mMyListFragment);
+			fragmentTransaction.commit();
+		}
+	}
+
 	@Override
 	public void onItemSelected(int position) {
 		// TODO Auto-generated method stub		
@@ -40,23 +61,6 @@ public class MainActivity extends SherlockFragmentActivity implements
 					.beginTransaction();
 			fragmentTransaction.replace(R.id.fragment_container, newFragment);
 			fragmentTransaction.addToBackStack(null);
-			fragmentTransaction.commit();
-		}
-	}
-
-
-	@Override
-	protected void onCreate(Bundle arg0) {
-		// TODO Auto-generated method stub
-		super.onCreate(arg0);
-		setTheme(R.style.Theme_Sherlock);
-		setContentView(R.layout.news_articles);
-
-		if (findViewById(R.id.fragment_container) != null) {
-			mMyListFragment = new MyListFragment();
-			FragmentTransaction fragmentTransaction = getSupportFragmentManager()
-					.beginTransaction();
-			fragmentTransaction.add(R.id.fragment_container, mMyListFragment);
 			fragmentTransaction.commit();
 		}
 	}
@@ -116,5 +120,4 @@ public class MainActivity extends SherlockFragmentActivity implements
 		fragmentTransaction.addToBackStack(null);
 		fragmentTransaction.commit();
 	}
-
 }

@@ -31,6 +31,8 @@
             android:authorities="com.jimmy.rssreader" />
         <service 
             android:name="com.jimmy.rssreader.async.FetchRSSInfoService" />
+        <service 
+            android:name="com.jimmy.rssreader.async.TestService" />
     </application>
 
 </manifest>

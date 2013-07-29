@@ -61,6 +61,7 @@ public class RSSInfoProvider extends ContentProvider {
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
 		// TODO Auto-generated method stub
+		Log.d(TAG, "ContentProvider:Insert()--------");
 		int uriType = sUriMatcher.match(uri);
 		SQLiteDatabase database = mOpenHelper.getWritableDatabase();
 		String id = "0";

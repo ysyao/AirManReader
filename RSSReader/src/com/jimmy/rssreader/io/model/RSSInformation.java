@@ -7,15 +7,15 @@ public class RSSInformation {
 	private String title;
 	private long id;
 	private String description;
-	private Date pubDate;
-	private Uri link;
+	private String pubDate;
+	private String link;
 	
 	
 	
-	public Uri getLink() {
+	public String getLink() {
 		return link;
 	}
-	public void setLink(Uri link) {
+	public void setLink(String link) {
 		this.link = link;
 	}
 	public String getTitle() {
@@ -36,10 +36,10 @@ public class RSSInformation {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public Date getPubDate() {
+	public String getPubDate() {
 		return pubDate;
 	}
-	public void setPubDate(Date pubDate) {
+	public void setPubDate(String pubDate) {
 		this.pubDate = pubDate;
 	}
 	
