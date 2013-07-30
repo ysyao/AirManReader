@@ -12,6 +12,7 @@ import com.actionbarsherlock.app.SherlockListFragment;
 import com.jimmy.rssreader.R;
 import com.jimmy.rssreader.async.CheckNet;
 import com.jimmy.rssreader.async.FetchRSSInfoService;
+import com.jimmy.rssreader.async.MyContentObserver;
 import com.jimmy.rssreader.async.TestService;
 import com.jimmy.rssreader.async.FetchRSSInfoService.FetchRSSInfoBinder;
 import com.jimmy.rssreader.async.TestService.TestBinder;
@@ -23,10 +24,12 @@ import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.database.ContentObserver;
@@ -36,6 +39,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
@@ -49,11 +53,15 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 public class MyListFragment extends SherlockListFragment {
-
 	public static final String TAG = "MyListFragment";
+	private static int rows = 0;
+
 	public TestService mBoundService;
 	private MyServiceConnection mConnection = new MyServiceConnection();
 	private MyCursorLoader mLoader = new MyCursorLoader();
+/*	private MyHandler mHandler = new MyHandler();
+	private MyContentObserver mObserver = new MyContentObserver(getActivity(),
+			mHandler);*/
 
 	private boolean isBounded = false;
 	OnItemSelected mListener;
@@ -61,6 +69,7 @@ public class MyListFragment extends SherlockListFragment {
 	SharedPreferences.Editor mEditor;
 	SimpleCursorAdapter mAdapter;
 	String mUri = "";
+	int updateNum = 0;
 
 	@Override
 	public void onAttach(Activity activity) {
@@ -75,8 +84,10 @@ public class MyListFragment extends SherlockListFragment {
 			throw new ClassCastException(activity.toString() + " must"
 					+ "implements OnItemSelected");
 		}
-		activity.getContentResolver().registerContentObserver(
-				RSSInfo.CONTENT_URI, true, mObserver);
+
+		/*activity.getContentResolver().registerContentObserver(
+				RSSInfo.CONTENT_URI, true, mObserver);*/
+
 	}
 
 	@Override
@@ -84,7 +95,8 @@ public class MyListFragment extends SherlockListFragment {
 		Log.d(TAG, "Method:onDetach;Unregisting contentprovider observer.");
 		// TODO Auto-generated method stub
 		super.onDetach();
-		getActivity().getContentResolver().unregisterContentObserver(mObserver);
+
+		/*getActivity().getContentResolver().unregisterContentObserver(mObserver);*/
 	}
 
 	@Override
@@ -109,7 +121,9 @@ public class MyListFragment extends SherlockListFragment {
 				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		mEditor = mSharedPreferences.edit();
 		mUri = getString(R.string.WANGYI_URI);
-		
+		IntentFilter filter = new IntentFilter("com.jimmy.rssreader.datareceiver");
+		getActivity().registerReceiver(new MyBroadcastReceiver(), filter);
+
 		// Setting up the little plugin here.
 		((PullToRefreshListView) getListView())
 				.setOnRefreshListener(new OnRefreshListener() {
@@ -124,8 +138,23 @@ public class MyListFragment extends SherlockListFragment {
 
 	@Override
 	public void onStart() {
-		Log.d(TAG, "Method:onStart;DoBinding the Service,and load data to loader");
+		Log.d(TAG,
+				"Method:onStart;DoBinding the Service,and load data to loader");
 		super.onStart();
+		doBindService();
+	}
+
+	@Override
+	public void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		doUnBindService();
+	}
+
+	@Override
+	public void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
 		doBindService();
 	}
 
@@ -173,20 +202,26 @@ public class MyListFragment extends SherlockListFragment {
 	private void fillData() {
 		Log.d(TAG, "Method:fillData;Injecting data to cursorAdapter");
 		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE, RSSInfo.LINK };
-		int[] to = new int[] { R.id.titleTV, R.id.pubdateTV, R.id.linkTV };
-		
+		int[] to = { R.id.titleTV, R.id.pubdateTV, R.id.linkTV };
 		getActivity().getSupportLoaderManager().initLoader(0, null, mLoader);
+
 		mAdapter = new SimpleCursorAdapter(getActivity(),
 				R.layout.rss_insert_row, null, from, to, 0);
-		setListAdapter(mAdapter);
 		
+		if(rows == 0) {
+			Toast.makeText(getActivity(), "No new data updated", Toast.LENGTH_SHORT).show();
+		} else {
+			Toast.makeText(getActivity(), "更新了 " + rows + "条数据", Toast.LENGTH_SHORT).show();
+		}
+		
+		setListAdapter(mAdapter);
 		// Config the PullToRefresh plugin
 		((PullToRefreshListView) getListView()).onRefreshComplete();
 	}
 
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
-		// TODO Auto-generated method stub
+		Log.d(TAG,"Method:onListItemClick");
 		super.onListItemClick(l, v, position, id);
 		mListener.onItemSelected(position);
 	}
@@ -207,7 +242,6 @@ public class MyListFragment extends SherlockListFragment {
 
 			if (mBoundService != null) {
 				isBounded = true;
-				mBoundService.createTestData();
 			}
 		}
 	};
@@ -216,11 +250,13 @@ public class MyListFragment extends SherlockListFragment {
 		Log.d(TAG, "Method:doBindService;");
 		/* Intent intent = new Intent(getActivity(), FetchRSSInfoService.class); */
 		Intent testIntent = new Intent(getActivity(), TestService.class);
-		testIntent.putExtra("link", mUri);
-		testIntent.putExtra("title", "Kid");
-		testIntent.putExtra("date", "2013/07/29");
+		/*
+		 * testIntent.putExtra("link", mUri); testIntent.putExtra("title",
+		 * "Kid"); testIntent.putExtra("date", "2013/07/30");
+		 */
 		getActivity().bindService(testIntent, mConnection,
 				Context.BIND_AUTO_CREATE);
+		isBounded = true;
 	}
 
 	public void doUnBindService() {
@@ -231,15 +267,13 @@ public class MyListFragment extends SherlockListFragment {
 		}
 	}
 	
-	private final ContentObserver mObserver = new ContentObserver(new Handler()) {
+	private class MyBroadcastReceiver extends BroadcastReceiver {
+
 		@Override
-		public void onChange(boolean selfChange) {
-			Log.d(TAG, "Method:ContentObserver's onChange;");
-			super.onChange(selfChange);
-			if (getActivity() == null) {
-				return;
-			}
+		public void onReceive(Context context, Intent intent) {
+			Log.d(TAG,"Method:onReceive");
+			rows = intent.getExtras().getInt("insertRows");
 			fillData();
 		}
-	};
+	}
 }

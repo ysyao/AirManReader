@@ -27,7 +27,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 	@Override
 	protected void onCreate(Bundle arg0) {
-		// TODO Auto-generated method stub
+		Log.d(TAG,"Method:onCreate");
 		super.onCreate(arg0);
 		setTheme(R.style.Theme_Sherlock);
 		setContentView(R.layout.news_articles);
@@ -43,7 +43,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 	@Override
 	public void onItemSelected(int position) {
-		// TODO Auto-generated method stub		
+		Log.d(TAG,"Method:onItemSelected");
 		
 		ArticleFragment articleFragment = (ArticleFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.article_fragment);

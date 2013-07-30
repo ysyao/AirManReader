@@ -95,6 +95,12 @@ public class FetchRSSInfoService extends Service {
 			}
 			return rowNum;
 		}
+		@Override
+		protected void onPostExecute(Integer result) {
+			// TODO Auto-generated method stub
+			super.onPostExecute(result);
+		}
+		
 	}
 
 }
