@@ -1069,6 +1069,8 @@ containing a value of this type.
         public static final int pull_to_refresh_refreshing_label=0x7f040003;
         public static final int pull_to_refresh_release_label=0x7f040002;
         public static final int pull_to_refresh_tap_label=0x7f040004;
+        public static final int rss_bound_service=0x7f040019;
+        public static final int rss_start_service=0x7f04001a;
         public static final int store_name=0x7f040015;
     }
     public static final class style {

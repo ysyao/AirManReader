@@ -1,10 +1,17 @@
 package com.jimmy.rssreader.async;
 
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.Random;
 
+import com.jimmy.rssreader.R;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
+import com.jimmy.rssreader.ui.MainActivity;
 import com.jimmy.rssreader.ui.MyListFragment;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
@@ -24,21 +31,41 @@ import android.util.Log;
 
 public class TestService extends Service {
 	private static final String TAG = "TestService";
+	public static final String BOUND_SERVICE = "bound";
+	public static final String START_SERVICE = "start";
 	TestBinder mBinder;
-	TestServiceAsync mTask;
+	TestServiceAsync mBoundTask;
+	TestServiceAsync mStartTask;
+	private NotificationManager mNM;
+	private static int BOUND_NOTIFICATION = R.string.rss_bound_service;
+	private static int START_NOTIFICATION = R.string.rss_start_service;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		Log.d(TAG, "Method:onCreate-----");
-		mTask = new TestServiceAsync();
-		mTask.execute("begin");
+		mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		fetchDataFromRemote();
+	}
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		Log.d(TAG, "Method:onStartCommand");
+		showStartNotification();
+		
+		mStartTask = new TestServiceAsync(START_SERVICE);
+		mStartTask.execute("begin");
+		
+		return super.onStartCommand(intent, flags, startId);
 	}
 
 	@Override
 	public void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
+		mNM.cancel(BOUND_NOTIFICATION);
+		mNM.cancel(START_NOTIFICATION);
+		stopSelf();
 	}
 
 	public class TestBinder extends Binder {
@@ -51,37 +78,89 @@ public class TestService extends Service {
 	public IBinder onBind(Intent intent) {
 		return mBinder;
 	}
+	
+	public void fetchDataFromRemote() {
+		Log.d(TAG, "Method:fetchDataFromRemote");
+		showBoundNotification();
+		mBoundTask = new TestServiceAsync(BOUND_SERVICE);
+		mBoundTask.execute("begin");
+	}
 
 	public void createTestData() {
-		ContentValues values = new ContentValues();
-		values.put(RSSInfo.TITLE, "Kobe For random");
-		values.put(RSSInfo.LINK, "www.wangyi.com");
-		values.put(RSSInfo.PUB_DATE, "2013/7/30");
+		// Faking some data would be fetched from internet
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy/mm/dd hh:mm:ss");
+
+		ContentValues values1 = new ContentValues();
+		ContentValues values2 = new ContentValues();
+		ContentValues values3 = new ContentValues();
+		values1.put(RSSInfo.TITLE, "Kobe For random");
+		values1.put(RSSInfo.LINK, "www.Kobe.com");
+		values1.put(RSSInfo.PUB_DATE, formatter.format(new java.util.Date()));
+		values2.put(RSSInfo.TITLE, "Jordan For random");
+		values2.put(RSSInfo.LINK, "www.Jordan.com");
+		values2.put(RSSInfo.PUB_DATE, formatter.format(new java.util.Date()));
+		values3.put(RSSInfo.TITLE, "James For random");
+		values3.put(RSSInfo.LINK, "www.James.com");
+		values3.put(RSSInfo.PUB_DATE, formatter.format(new java.util.Date()));
+
+		ContentValues[] values = { values1, values2, values3 };
+		Random random = new Random();
+		int i = random.nextInt(3);
+
 		getApplicationContext().getContentResolver().insert(
-				RSSInfo.CONTENT_URI, values);
+				RSSInfo.CONTENT_URI, values[i]);
+	}
+
+	private void showBoundNotification() {
+		CharSequence text = getText(R.string.rss_bound_service);
+		Notification notification = new Notification(R.drawable.icon, text,
+				System.currentTimeMillis());
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+				new Intent(this, MyListFragment.class), 0);
+		notification.setLatestEventInfo(this, "com.jimmy.rssreader", text,
+				contentIntent);
+		mNM.notify(BOUND_NOTIFICATION, notification);
+	}
+
+	private void showStartNotification() {
+		CharSequence text = getText(R.string.rss_start_service);
+		Notification notification = new Notification(R.drawable.icon, text,
+				System.currentTimeMillis());
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+				new Intent(this, MyListFragment.class), 0);
+		notification.setLatestEventInfo(this, "com.jimmy.rssreader", text,
+				contentIntent);
+		mNM.notify(START_NOTIFICATION, notification);
 	}
 
 	private class TestServiceAsync extends AsyncTask<String, Void, Integer> {
-
+		private String type;
+		public TestServiceAsync(String type) {
+			this.type = type;
+		}
+		
 		@Override
 		protected Integer doInBackground(String... params) {
 			Log.d(TAG, "Method:doInBackground-----");
-			double i = Math.random() * 10;
-
-			if (i >= 1) {
-				createTestData();
+			Random random = new Random();
+			int pickNumber = random.nextInt(4);
+			if (pickNumber > 0) {
+				for (int i = 1; i <= pickNumber; i++) {
+					createTestData();
+				}
 			}
-			return (int) i;
+			return pickNumber;
 		}
-		
+
 		@Override
 		protected void onPostExecute(Integer result) {
 			Log.d(TAG, "Method:onPostExecute");
 			super.onPostExecute(result);
 			Intent i = new Intent("com.jimmy.rssreader.datareceiver");
+			i.setType(type);
 			i.putExtra("insertRows", result);
 			sendBroadcast(i);
 		}
-		
+
 	}
 }

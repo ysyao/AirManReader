@@ -9,7 +9,8 @@
     <string name="WANGYI_URI">http://sports.163.com/special/00051K7F/rss_sportslq.xml</string>
     <string name="SINA_URI">http://rss.sina.com.cn/sports/basketball/nba.xml</string>
     <string name="SOUHU_URI">http://rss.sports.sohu.com/rss/nba.xml</string>
-    
+    <string name="rss_bound_service">com.jimmy.rssreader(bunld serivce)</string>
+    <string name="rss_start_service">com.jimmy.rssreader(start service)</string>
     
 
 </resources>
