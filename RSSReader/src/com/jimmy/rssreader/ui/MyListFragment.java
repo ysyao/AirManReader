@@ -60,7 +60,7 @@ public class MyListFragment extends SherlockListFragment {
 
 	public TestService mBoundService;
 	private MyServiceConnection mConnection = new MyServiceConnection();
-	private MyCursorLoader mLoader = new MyCursorLoader();
+	private MyLoaderCallBacks mLoaderCallBacks = new MyLoaderCallBacks();
 	private MyBroadcastReceiver mReceiver = new MyBroadcastReceiver();
 	IntentFilter mFilter = new IntentFilter("com.jimmy.rssreader.datareceiver");
 	/*
@@ -130,7 +130,14 @@ public class MyListFragment extends SherlockListFragment {
 		mSharedPreferences = getActivity().getSharedPreferences(
 				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		mEditor = mSharedPreferences.edit();
-		mUri = getString(R.string.WANGYI_URI);
+		mUri = getString(R.string.WANGYI_URI);		
+		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE, RSSInfo.LINK };
+		int[] to = { R.id.titleTV, R.id.pubdateTV, R.id.linkTV };
+
+		mAdapter = new SimpleCursorAdapter(getActivity(),
+				R.layout.rss_insert_row, null, from, to, 0);
+		setListAdapter(mAdapter);
+		getActivity().getSupportLoaderManager().initLoader(0, null, mLoaderCallBacks);
 
 		// Setting up the little plugin here.
 		((PullToRefreshListView) getListView())
@@ -146,25 +153,25 @@ public class MyListFragment extends SherlockListFragment {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
+		Log.d(TAG, "Method:onCreate");
 		super.onCreate(savedInstanceState);
 		doBindService();
-		doStartService();
+		/*doStartService();*/
 	}
-
+	
 	@Override
 	public void onDestroy() {
-		// TODO Auto-generated method stub
+		Log.d(TAG, "Method:onDestroy");
 		super.onDestroy();
 		doUnBindService();
-		doStopService();
+		/*doStopService();*/
 	}
 
 	public interface OnItemSelected {
 		public void onItemSelected(int position);
 	}
 
-	public class MyCursorLoader implements LoaderCallbacks<Cursor> {
+	public class MyLoaderCallBacks implements LoaderCallbacks<Cursor> {
 
 		@Override
 		public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
@@ -173,8 +180,7 @@ public class MyListFragment extends SherlockListFragment {
 					"Method:onCreateLoader;Using cursorLoader to load the data which queryed from contentresolver");
 			String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
 					RSSInfo.PUB_DATE, RSSInfo.LINK };
-			CursorLoader cursorLoader = new CursorLoader(getActivity(),
-					RSSInfo.CONTENT_URI, projection, null, null, null);
+			CursorLoaderNotAuto cursorLoader = new CursorLoaderNotAuto(getActivity(), RSSInfo.CONTENT_URI, projection, null, null, null);
 			return cursorLoader;
 		}
 
@@ -194,12 +200,6 @@ public class MyListFragment extends SherlockListFragment {
 
 	private void fillData() {
 		Log.d(TAG, "Method:fillData;Injecting data to cursorAdapter");
-		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE, RSSInfo.LINK };
-		int[] to = { R.id.titleTV, R.id.pubdateTV, R.id.linkTV };
-
-		mAdapter = new SimpleCursorAdapter(getActivity(),
-				R.layout.rss_insert_row, null, from, to, 0);
-
 		if (rows == 0) {
 			Toast.makeText(getActivity(), "No new data updated",
 					Toast.LENGTH_SHORT).show();
@@ -210,7 +210,8 @@ public class MyListFragment extends SherlockListFragment {
 		setListAdapter(mAdapter);
 
 		// Initing loader
-		getActivity().getSupportLoaderManager().initLoader(0, null, mLoader);
+		getActivity().getSupportLoaderManager().restartLoader(0, null, mLoaderCallBacks);
+		
 		// Config the PullToRefresh plugin
 		((PullToRefreshListView) getListView()).onRefreshComplete();
 	}
@@ -229,7 +230,6 @@ public class MyListFragment extends SherlockListFragment {
 			Log.d(TAG, "Method:onServiceDisconnected;");
 			isBounded = false;
 			mBoundService = null;
-
 		}
 
 		@Override
@@ -266,7 +266,7 @@ public class MyListFragment extends SherlockListFragment {
 		}
 	}
 	
-	public void doStartService() {
+	/*public void doStartService() {
 		Intent i = new Intent(getActivity(),TestService.class);
 		getActivity().startService(i);
 	}
@@ -274,34 +274,23 @@ public class MyListFragment extends SherlockListFragment {
 	public void doStopService() {
 		Intent i = new Intent(getActivity(),TestService.class);
 		getActivity().stopService(i);
-	}
+	}*/
 
 	private class MyBroadcastReceiver extends BroadcastReceiver {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			Log.d(TAG, "Method:onReceive");
-			String type = intent.getType();
 			Bundle bundle = intent.getExtras();
-
-			String state = bundle.getString(TelephonyManager.EXTRA_STATE);
-			if (TelephonyManager.EXTRA_STATE_RINGING.equals(state)) {
-				return;
-			}
-			if (TelephonyManager.EXTRA_STATE_IDLE.equals(state)) {
-				return;
-			}
-			if (TelephonyManager.EXTRA_STATE_OFFHOOK.equals(state)) {
-				return;
-			}
-
 			rows = bundle.getInt("insertRows");
-			if (type == TestService.BOUND_SERVICE) {
+			int type = bundle.getInt("type");
+			if (type == TestService.REFRESH_TASK_TYPE) {
 				fillData();
-			} else {
+			} else if (type == TestService.PERIODIC_TASK_TYPE){
 				if (rows > 0) {
 					Toast.makeText(getActivity(), "你有" + rows + "条新数据未更新",
-							Toast.LENGTH_SHORT).show();	
+							Toast.LENGTH_SHORT).show();
+					return;
 				}
 			}
 		}

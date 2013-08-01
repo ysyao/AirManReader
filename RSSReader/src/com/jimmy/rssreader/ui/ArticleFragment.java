@@ -56,17 +56,19 @@ public class ArticleFragment extends Fragment {
 		Log.d(TAG,"Method:updateArticleView,position is " + position);
 		String link = "";
 		String[] projection = { RSSInfo.LINK };
-		String[] selectionArgs = { Integer.toString(position - 1) };
+		String[] selectionArgs = { Integer.toString(position) };
 
 		Cursor cursor = getActivity().getContentResolver().query(
 				RSSInfo.CONTENT_URI, projection, RSSInfo._ID + "=?",
 				selectionArgs, null);
-		if (cursor != null || !cursor.equals("")) {
-			link = cursor.getExtras().getString(RSSInfo.LINK);
+		
+		if (cursor != null && cursor.moveToFirst()) {
+			Log.d(TAG,"Method:updateArticleView,query the results." );
+			link = cursor.getString(cursor.getColumnIndexOrThrow(RSSInfo.LINK));
 		}
 		mArticleLink = (TextView)getActivity().findViewById(R.id.article);
 		mArticleLink.setText(link);
-		
+		Log.d(TAG,"Method:updateArticleView,link is " + link);		
 
 		/*
 		 * Gson gson = new GsonBuilder().registerTypeAdapter(Uri.class, new
