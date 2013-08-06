@@ -3,6 +3,8 @@ package com.jimmy.rssreader.ui;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.SubMenu;
 import com.jimmy.rssreader.R;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.ui.MyListFragment.OnItemSelected;
@@ -19,10 +21,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.widget.EditText;
 
 public class MainActivity extends SherlockFragmentActivity implements
 		OnItemSelected {
 	private static final String TAG = "MainActivity";
+	private static final int THEME = com.actionbarsherlock.R.style.Theme_Sherlock;
 	MyListFragment mMyListFragment;
 
 	@Override
@@ -31,6 +35,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 		super.onCreate(arg0);
 		setTheme(R.style.Theme_Sherlock);
 		setContentView(R.layout.news_articles);
+		
 
 		if (findViewById(R.id.fragment_container) != null) {
 			mMyListFragment = new MyListFragment();
@@ -68,10 +73,17 @@ public class MainActivity extends SherlockFragmentActivity implements
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// TODO Auto-generated method stub
-		menu.clear();
-		menu.add(0, 1, 1, "Эјвз");
-		menu.add(0, 2, 2, "Sina");
-		menu.add(0, 3, 3, "SOHO");
+		boolean isLight = MainActivity.THEME == R.style.Theme_Sherlock_Light;
+		menu.add("Search")
+			.setIcon(isLight ? R.drawable.ic_search_inverse : R.drawable.ic_search)
+			.setActionView(R.layout.collapsible_edittext)
+			.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+		
+		SubMenu sub = menu.addSubMenu("Sources");
+		sub.add(0, 1, 1, "Эјвз");
+		sub.add(0, 2, 2, "SINA");
+		sub.add(0, 3, 3, "SOHO");
+		sub.getItem().setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
 		return true;
 	}
 	
