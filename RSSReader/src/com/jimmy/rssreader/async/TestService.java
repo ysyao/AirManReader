@@ -91,7 +91,7 @@ public class TestService extends Service {
 		Log.d(TAG, "Method:fetchDataFromRemote");
 		mTimer.cancel();
 		new TestServiceAsync(REFRESH_TASK_TYPE).execute();
-		mTimer = fetchDataPeriodic(5000, 5000);
+		mTimer = fetchDataPeriodic(30000, 30000);
 	}
 	
 	public Timer fetchDataPeriodic(long delay, long period) {

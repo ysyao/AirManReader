@@ -1,5 +1,8 @@
 package com.jimmy.rssreader.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
@@ -11,6 +14,7 @@ import com.jimmy.rssreader.ui.MyListFragment.OnItemSelected;
 import com.markupartist.android.widget.PullToRefreshListView;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -19,8 +23,15 @@ import android.content.SharedPreferences.Editor;
 import android.database.ContentObserver;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 
 public class MainActivity extends SherlockFragmentActivity implements
@@ -28,21 +39,32 @@ public class MainActivity extends SherlockFragmentActivity implements
 	private static final String TAG = "MainActivity";
 	private static final int THEME = com.actionbarsherlock.R.style.Theme_Sherlock;
 	MyListFragment mMyListFragment;
+	ArticleFragment mArticleFragment;
+	ViewPager mViewPager;
+	TabsAdapter mTabsAdapter;
 
 	@Override
-	protected void onCreate(Bundle arg0) {
+	protected void onCreate(Bundle bundle) {
 		Log.d(TAG,"Method:onCreate");
-		super.onCreate(arg0);
+		super.onCreate(bundle);
 		setTheme(R.style.Theme_Sherlock);
 		setContentView(R.layout.news_articles);
+		mViewPager = (ViewPager) findViewById(R.id.fragment_container);
 		
-
-		if (findViewById(R.id.fragment_container) != null) {
-			mMyListFragment = new MyListFragment();
+		if (mViewPager != null) {
+			mTabsAdapter = new TabsAdapter(this, getSupportFragmentManager());
+			mTabsAdapter.addTab(MyListFragment.class);
+			mTabsAdapter.addTab(ArticleFragment.class);
+			mViewPager.setAdapter(mTabsAdapter);
+			/*
+			if (mMyListFragment == null) {
+				mMyListFragment = new MyListFragment();
+			}
+			
 			FragmentTransaction fragmentTransaction = getSupportFragmentManager()
 					.beginTransaction();
 			fragmentTransaction.add(R.id.fragment_container, mMyListFragment);
-			fragmentTransaction.commit();
+			fragmentTransaction.commit();*/
 		}
 	}
 
@@ -50,21 +72,21 @@ public class MainActivity extends SherlockFragmentActivity implements
 	public void onItemSelected(int position) {
 		Log.d(TAG,"Method:onItemSelected");
 		
-		ArticleFragment articleFragment = (ArticleFragment) getSupportFragmentManager()
+		mArticleFragment = (ArticleFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.article_fragment);
 
-		if (articleFragment != null) {
-			articleFragment.updateArticleView(position);
+		if (mArticleFragment != null) {
+			mArticleFragment.updateArticleView(position);
 		} else {
-			ArticleFragment newFragment = new ArticleFragment();
+			mArticleFragment = new ArticleFragment();
 			// Pass the position to object ArticleFragment
 			Bundle arg = new Bundle();
 			arg.putInt(ArticleFragment.ARG_POSITION, position);
-			newFragment.setArguments(arg);
+			mArticleFragment.setArguments(arg);
 
 			FragmentTransaction fragmentTransaction = getSupportFragmentManager()
 					.beginTransaction();
-			fragmentTransaction.replace(R.id.fragment_container, newFragment);
+			fragmentTransaction.replace(R.id.fragment_container, mArticleFragment);
 			fragmentTransaction.addToBackStack(null);
 			fragmentTransaction.commit();
 		}
@@ -132,4 +154,31 @@ public class MainActivity extends SherlockFragmentActivity implements
 		fragmentTransaction.addToBackStack(null);
 		fragmentTransaction.commit();
 	}
+	
+	public static class TabsAdapter extends FragmentPagerAdapter{
+		private final Context mContext;
+		private final List<Class<?>> classNames = new ArrayList<Class<?>>();
+		
+		public TabsAdapter(Activity activity, FragmentManager fm) {
+			super(fm);
+			mContext = activity;
+		}
+		
+		public void addTab(Class<?> className) {
+			classNames.add(className);
+		}
+		
+		@Override
+		public Fragment getItem(int position) {
+			Class<?> className = classNames.get(position);
+			return Fragment.instantiate(mContext, className.getName());
+		}
+		@Override
+		public int getCount() {
+			// TODO Auto-generated method stub
+			return classNames.size();
+		}
+		
+	}
+	
 }

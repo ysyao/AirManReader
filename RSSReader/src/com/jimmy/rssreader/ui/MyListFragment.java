@@ -90,11 +90,6 @@ public class MyListFragment extends SherlockListFragment {
 					+ "implements OnItemSelected");
 		}
 		getActivity().registerReceiver(mReceiver, mFilter);
-		/*
-		 * activity.getContentResolver().registerContentObserver(
-		 * RSSInfo.CONTENT_URI, true, mObserver);
-		 */
-
 	}
 
 	@Override
@@ -103,10 +98,6 @@ public class MyListFragment extends SherlockListFragment {
 		// TODO Auto-generated method stub
 		super.onDetach();
 		getActivity().unregisterReceiver(mReceiver);
-		/*
-		 * getActivity().getContentResolver().unregisterContentObserver(mObserver
-		 * );
-		 */
 	}
 
 	@Override
@@ -266,16 +257,6 @@ public class MyListFragment extends SherlockListFragment {
 		}
 	}
 	
-	/*public void doStartService() {
-		Intent i = new Intent(getActivity(),TestService.class);
-		getActivity().startService(i);
-	}
-	
-	public void doStopService() {
-		Intent i = new Intent(getActivity(),TestService.class);
-		getActivity().stopService(i);
-	}*/
-
 	private class MyBroadcastReceiver extends BroadcastReceiver {
 
 		@Override

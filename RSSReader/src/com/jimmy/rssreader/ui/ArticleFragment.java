@@ -10,9 +10,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
+import android.view.View.OnDragListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -51,7 +55,7 @@ public class ArticleFragment extends Fragment {
 			updateArticleView(mCurrentPosition);
 		}
 	}
-
+	
 	public void updateArticleView(int position) {
 		Log.d(TAG,"Method:updateArticleView,position is " + position);
 		String link = "";
