@@ -38,40 +38,45 @@ public class MainActivity extends SherlockFragmentActivity implements
 		OnItemSelected {
 	private static final String TAG = "MainActivity";
 	private static final int THEME = com.actionbarsherlock.R.style.Theme_Sherlock;
-	MyListFragment mMyListFragment;
-	ArticleFragment mArticleFragment;
+
+	private static MyListFragment mMyListFragment;
+	private static ArticleFragment mArticleFragment;
+
 	ViewPager mViewPager;
 	TabsAdapter mTabsAdapter;
 
 	@Override
 	protected void onCreate(Bundle bundle) {
-		Log.d(TAG,"Method:onCreate");
+		Log.d(TAG, "Method:onCreate");
 		super.onCreate(bundle);
 		setTheme(R.style.Theme_Sherlock);
 		setContentView(R.layout.news_articles);
 		mViewPager = (ViewPager) findViewById(R.id.fragment_container);
-		
+
 		if (mViewPager != null) {
-			mTabsAdapter = new TabsAdapter(this, getSupportFragmentManager());
-			mTabsAdapter.addTab(MyListFragment.class);
-			mTabsAdapter.addTab(ArticleFragment.class);
+			mTabsAdapter = new TabsAdapter(getSupportFragmentManager());
 			mViewPager.setAdapter(mTabsAdapter);
 			/*
-			if (mMyListFragment == null) {
-				mMyListFragment = new MyListFragment();
-			}
-			
-			FragmentTransaction fragmentTransaction = getSupportFragmentManager()
-					.beginTransaction();
-			fragmentTransaction.add(R.id.fragment_container, mMyListFragment);
-			fragmentTransaction.commit();*/
+			 * if (mMyListFragment == null) { mMyListFragment = new
+			 * MyListFragment(); }
+			 * 
+			 * FragmentTransaction fragmentTransaction =
+			 * getSupportFragmentManager() .beginTransaction();
+			 * fragmentTransaction.add(R.id.fragment_container,
+			 * mMyListFragment); fragmentTransaction.commit();
+			 */
+		} else {
+			mMyListFragment = (MyListFragment) getSupportFragmentManager()
+					.findFragmentById(R.id.headlines_fragment);
+			mArticleFragment = (ArticleFragment) getSupportFragmentManager()
+					.findFragmentById(R.id.article_fragment);
 		}
 	}
 
 	@Override
 	public void onItemSelected(int position) {
-		Log.d(TAG,"Method:onItemSelected");
-		
+		Log.d(TAG, "Method:onItemSelected");
+/*
 		mArticleFragment = (ArticleFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.article_fragment);
 
@@ -86,10 +91,14 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 			FragmentTransaction fragmentTransaction = getSupportFragmentManager()
 					.beginTransaction();
-			fragmentTransaction.replace(R.id.fragment_container, mArticleFragment);
+			fragmentTransaction.replace(R.id.fragment_container,
+					mArticleFragment);
 			fragmentTransaction.addToBackStack(null);
 			fragmentTransaction.commit();
-		}
+		}*/
+		
+		mArticleFragment.updateArticleView(position);
+		mViewPager.setCurrentItem(1);
 	}
 
 	@Override
@@ -97,18 +106,23 @@ public class MainActivity extends SherlockFragmentActivity implements
 		// TODO Auto-generated method stub
 		boolean isLight = MainActivity.THEME == R.style.Theme_Sherlock_Light;
 		menu.add("Search")
-			.setIcon(isLight ? R.drawable.ic_search_inverse : R.drawable.ic_search)
-			.setActionView(R.layout.collapsible_edittext)
-			.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-		
+				.setIcon(
+						isLight ? R.drawable.ic_search_inverse
+								: R.drawable.ic_search)
+				.setActionView(R.layout.collapsible_edittext)
+				.setShowAsAction(
+						MenuItem.SHOW_AS_ACTION_ALWAYS
+								| MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+
 		SubMenu sub = menu.addSubMenu("Sources");
 		sub.add(0, 1, 1, "Эјвз");
 		sub.add(0, 2, 2, "SINA");
 		sub.add(0, 3, 3, "SOHO");
-		sub.getItem().setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+		sub.getItem().setShowAsAction(
+				MenuItem.SHOW_AS_ACTION_IF_ROOM
+						| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
 		return true;
 	}
-	
 
 	@Override
 	public boolean onOptionsItemSelected(
@@ -130,7 +144,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 	public void replaceMyListFragment(String uri) {
 		int fragmentId = 0;
-		
+
 		SharedPreferences sharedPreferences = getSharedPreferences(
 				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		Editor editor = sharedPreferences.edit();
@@ -144,41 +158,41 @@ public class MainActivity extends SherlockFragmentActivity implements
 		MyListFragment newMyListFragment = new MyListFragment();
 
 		if (mMyListFragment != null) {
-			//Restart the mMyListFragment
+			// Restart the mMyListFragment
 			fragmentId = R.id.headlines_fragment;
 		} else {
 			fragmentId = R.id.fragment_container;
 		}
-		
+
 		fragmentTransaction.replace(fragmentId, newMyListFragment);
 		fragmentTransaction.addToBackStack(null);
 		fragmentTransaction.commit();
 	}
-	
-	public static class TabsAdapter extends FragmentPagerAdapter{
-		private final Context mContext;
-		private final List<Class<?>> classNames = new ArrayList<Class<?>>();
-		
-		public TabsAdapter(Activity activity, FragmentManager fm) {
+
+	public static class TabsAdapter extends FragmentPagerAdapter {
+
+		public TabsAdapter(FragmentManager fm) {
 			super(fm);
-			mContext = activity;
+			// TODO Auto-generated constructor stub
 		}
-		
-		public void addTab(Class<?> className) {
-			classNames.add(className);
-		}
-		
+
 		@Override
 		public Fragment getItem(int position) {
-			Class<?> className = classNames.get(position);
-			return Fragment.instantiate(mContext, className.getName());
+			switch (position) {
+			case 0:
+				return (mMyListFragment = new MyListFragment());
+			case 1:
+				return (mArticleFragment = new ArticleFragment());
+			default:
+				return null;
+			}
 		}
+
 		@Override
 		public int getCount() {
 			// TODO Auto-generated method stub
-			return classNames.size();
+			return 2;
 		}
-		
 	}
-	
+
 }
