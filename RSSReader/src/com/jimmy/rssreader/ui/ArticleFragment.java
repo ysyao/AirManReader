@@ -5,6 +5,7 @@ import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.jimmy.rssreader.R;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
+import com.jimmy.rssreader.ui.widget.MyWebView;
 
 import android.app.ActionBar;
 import android.database.Cursor;
@@ -14,6 +15,10 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
+import android.webkit.WebSettings.PluginState;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.TextView;
 
 public class ArticleFragment extends SherlockFragment {
@@ -22,7 +27,7 @@ public class ArticleFragment extends SherlockFragment {
 	public static final String ARG_POSITION = "position";
 	int mCurrentPosition = -1;
 	ActionBar mActionBar;
-	TextView mArticleLink;
+	WebView mArticleLink;
 
 	public ArticleFragment() {
 		// TODO Auto-generated constructor stub
@@ -63,7 +68,7 @@ public class ArticleFragment extends SherlockFragment {
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		Log.d(TAG, "Method in the ArticleFragment:onCreateOptionsMenu");
 		super.onCreateOptionsMenu(menu, inflater);
-		
+
 		menu.add("BACK")
 				.setIcon(R.drawable.abs__ic_cab_done_holo_light)
 				.setActionView(R.layout.article_actionbar_textview)
@@ -94,8 +99,12 @@ public class ArticleFragment extends SherlockFragment {
 			Log.d(TAG, "Method:updateArticleView,query the results.");
 			link = cursor.getString(cursor.getColumnIndexOrThrow(RSSInfo.LINK));
 		}
-		mArticleLink = (TextView) getActivity().findViewById(R.id.article);
-		mArticleLink.setText(link);
+		mArticleLink = (WebView) getActivity().findViewById(R.id.article);
+		mArticleLink.setWebViewClient(new MyWebViewClient());
+		WebSettings setting = mArticleLink.getSettings();
+		setting.setSupportZoom(true);
+		setting.setBuiltInZoomControls(true);
+		mArticleLink.loadUrl(link);
 		Log.d(TAG, "Method:updateArticleView,link is " + link);
 
 		/*
@@ -137,13 +146,14 @@ public class ArticleFragment extends SherlockFragment {
 	 * newMap.get("uriString");
 	 * 
 	 * return null; }
-	 * 
-	 * private class MyWebViewClient extends WebViewClient {
-	 * 
-	 * @Override public boolean shouldOverrideUrlLoading(WebView view, String
-	 * url) { // TODO Auto-generated method stub return false; }
-	 * 
-	 * }
 	 */
+	private class MyWebViewClient extends WebViewClient {
+
+		@Override
+		public boolean shouldOverrideUrlLoading(WebView view, String url) {
+			return true;
+		}
+
+	}
 
 }

@@ -957,7 +957,7 @@ containing a value of this type.
         public static final int abs__textButton=0x7f050013;
         public static final int abs__title=0x7f05001b;
         public static final int abs__up=0x7f05000b;
-        public static final int action_settings=0x7f050040;
+        public static final int action_settings=0x7f05003f;
         public static final int article=0x7f050033;
         public static final int articleFragmentTV=0x7f050032;
         public static final int article_fragment=0x7f050037;
@@ -966,7 +966,6 @@ containing a value of this type.
         public static final int fragment_container=0x7f050035;
         public static final int headlines_fragment=0x7f050036;
         public static final int homeAsUp=0x7f050006;
-        public static final int linkTV=0x7f05003f;
         public static final int listMode=0x7f050002;
         public static final int normal=0x7f050001;
         public static final int pubdateTV=0x7f05003e;

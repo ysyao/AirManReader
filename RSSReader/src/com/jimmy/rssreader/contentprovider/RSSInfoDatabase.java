@@ -58,9 +58,6 @@ public class RSSInfoDatabase extends SQLiteOpenHelper{
 	public void onCreate(SQLiteDatabase db) {
 		// TODO Auto-generated method stub
 		db.execSQL(CREATE_TABLE);
-		db.execSQL(INSERT_DATA1);
-		db.execSQL(INSERT_DATA2);
-		db.execSQL(INSERT_DATA3);
 	}
 
 	@Override

@@ -27,12 +27,5 @@
                 android:layout_weight="2"
                 android:text="pubdate" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/linkTV"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="links" />
     </TableLayout>
-
 </LinearLayout>

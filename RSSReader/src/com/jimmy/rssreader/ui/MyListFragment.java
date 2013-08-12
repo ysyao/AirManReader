@@ -1,56 +1,31 @@
 package com.jimmy.rssreader.ui;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.mcsoxford.rss.RSSFeed;
-import org.mcsoxford.rss.RSSItem;
-import org.mcsoxford.rss.RSSReader;
-import org.mcsoxford.rss.RSSReaderException;
-
 import com.actionbarsherlock.app.SherlockListFragment;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 import com.actionbarsherlock.view.SubMenu;
 import com.jimmy.rssreader.R;
-import com.jimmy.rssreader.async.CheckNet;
 import com.jimmy.rssreader.async.FetchRSSInfoService;
-import com.jimmy.rssreader.async.MyContentObserver;
-import com.jimmy.rssreader.async.TestService;
 import com.jimmy.rssreader.async.FetchRSSInfoService.FetchRSSInfoBinder;
-import com.jimmy.rssreader.async.TestService.TestBinder;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
-import com.jimmy.rssreader.io.model.RSSInformation;
 import com.markupartist.android.widget.PullToRefreshListView;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.database.ContentObserver;
 import android.database.Cursor;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
-import android.os.storage.StorageManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -63,7 +38,7 @@ public class MyListFragment extends SherlockListFragment {
 	public static final String TAG = "MyListFragment";
 	private static int rows = 0;
 
-	public TestService mBoundService;
+	public FetchRSSInfoService mBoundService;
 	private MyServiceConnection mConnection = new MyServiceConnection();
 	private MyLoaderCallBacks mLoaderCallBacks = new MyLoaderCallBacks();
 	private MyBroadcastReceiver mReceiver = new MyBroadcastReceiver();
@@ -78,7 +53,7 @@ public class MyListFragment extends SherlockListFragment {
 	SharedPreferences mSharedPreferences;
 	SharedPreferences.Editor mEditor;
 	SimpleCursorAdapter mAdapter;
-	String mUri = "";
+	private String mUri = "";
 	int updateNum = 0;
 
 	@Override
@@ -126,9 +101,9 @@ public class MyListFragment extends SherlockListFragment {
 		mSharedPreferences = getActivity().getSharedPreferences(
 				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		mEditor = mSharedPreferences.edit();
-		mUri = getString(R.string.WANGYI_URI);
-		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE, RSSInfo.LINK };
-		int[] to = { R.id.titleTV, R.id.pubdateTV, R.id.linkTV };
+		
+		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE };
+		int[] to = { R.id.titleTV, R.id.pubdateTV };
 
 		mAdapter = new SimpleCursorAdapter(getActivity(),
 				R.layout.rss_insert_row, null, from, to, 0);
@@ -197,7 +172,7 @@ public class MyListFragment extends SherlockListFragment {
 			Log.d(TAG,
 					"Method:onCreateLoader;Using cursorLoader to load the data which queryed from contentresolver");
 			String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
-					RSSInfo.PUB_DATE, RSSInfo.LINK };
+					RSSInfo.PUB_DATE};
 			CursorLoaderNotAuto cursorLoader = new CursorLoaderNotAuto(
 					getActivity(), RSSInfo.CONTENT_URI, projection, null, null,
 					null);
@@ -256,7 +231,7 @@ public class MyListFragment extends SherlockListFragment {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			Log.d(TAG, "Method:onServiceConnected;");
-			mBoundService = ((TestBinder) service).getService();
+			mBoundService = ((FetchRSSInfoBinder) service).getService();
 
 			if (mBoundService != null) {
 				isBounded = true;
@@ -265,9 +240,13 @@ public class MyListFragment extends SherlockListFragment {
 	};
 
 	public void doBindService() {
-		Log.d(TAG, "Method:doBindService;");
+		if(mUri == null || mUri.equals("")) {
+			mUri = getString(R.string.WANGYI_URI);
+		}
+		Log.d(TAG, "Method:doBindService;mUri is " + mUri);
 		/* Intent intent = new Intent(getActivity(), FetchRSSInfoService.class); */
-		Intent testIntent = new Intent(getActivity(), TestService.class);
+		Intent testIntent = new Intent(getActivity(), FetchRSSInfoService.class);
+		testIntent.putExtra("uri", mUri);
 		/*
 		 * testIntent.putExtra("link", mUri); testIntent.putExtra("title",
 		 * "Kid"); testIntent.putExtra("date", "2013/07/30");
@@ -295,9 +274,9 @@ public class MyListFragment extends SherlockListFragment {
 			Bundle bundle = intent.getExtras();
 			rows = bundle.getInt("insertRows");
 			int type = bundle.getInt("type");
-			if (type == TestService.REFRESH_TASK_TYPE) {
+			if (type == FetchRSSInfoService.REFRESH_TASK_TYPE) {
 				fillData();
-			} else if (type == TestService.PERIODIC_TASK_TYPE) {
+			} else if (type == FetchRSSInfoService.PERIODIC_TASK_TYPE) {
 				if (rows > 0) {
 					Toast.makeText(getActivity(), "你有" + rows + "条新数据未更新",
 							Toast.LENGTH_SHORT).show();
