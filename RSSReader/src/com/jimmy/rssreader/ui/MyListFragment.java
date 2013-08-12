@@ -9,6 +9,10 @@ import org.mcsoxford.rss.RSSReader;
 import org.mcsoxford.rss.RSSReaderException;
 
 import com.actionbarsherlock.app.SherlockListFragment;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.SubMenu;
 import com.jimmy.rssreader.R;
 import com.jimmy.rssreader.async.CheckNet;
 import com.jimmy.rssreader.async.FetchRSSInfoService;
@@ -55,6 +59,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 public class MyListFragment extends SherlockListFragment {
+
 	public static final String TAG = "MyListFragment";
 	private static int rows = 0;
 
@@ -121,14 +126,15 @@ public class MyListFragment extends SherlockListFragment {
 		mSharedPreferences = getActivity().getSharedPreferences(
 				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		mEditor = mSharedPreferences.edit();
-		mUri = getString(R.string.WANGYI_URI);		
+		mUri = getString(R.string.WANGYI_URI);
 		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE, RSSInfo.LINK };
 		int[] to = { R.id.titleTV, R.id.pubdateTV, R.id.linkTV };
 
 		mAdapter = new SimpleCursorAdapter(getActivity(),
 				R.layout.rss_insert_row, null, from, to, 0);
 		setListAdapter(mAdapter);
-		getActivity().getSupportLoaderManager().initLoader(0, null, mLoaderCallBacks);
+		getActivity().getSupportLoaderManager().initLoader(0, null,
+				mLoaderCallBacks);
 
 		// Setting up the little plugin here.
 		((PullToRefreshListView) getListView())
@@ -146,16 +152,37 @@ public class MyListFragment extends SherlockListFragment {
 	public void onCreate(Bundle savedInstanceState) {
 		Log.d(TAG, "Method:onCreate");
 		super.onCreate(savedInstanceState);
+		setHasOptionsMenu(true);
 		doBindService();
-		/*doStartService();*/
+		/* doStartService(); */
 	}
-	
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		Log.d(TAG, "Method:onCreateOptionsMenu");
+		super.onCreateOptionsMenu(menu, inflater);
+		menu.add("Search")
+				.setIcon(R.drawable.ic_search_inverse)
+				.setActionView(R.layout.collapsible_edittext)
+				.setShowAsAction(
+						MenuItem.SHOW_AS_ACTION_ALWAYS
+								| MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+
+		SubMenu sub = menu.addSubMenu("Sources");
+		sub.add(0, 1, 1, "网易");
+		sub.add(0, 2, 2, "SINA");
+		sub.add(0, 3, 3, "SOHO");
+		sub.getItem().setShowAsAction(
+				MenuItem.SHOW_AS_ACTION_IF_ROOM
+						| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+	}
+
 	@Override
 	public void onDestroy() {
 		Log.d(TAG, "Method:onDestroy");
 		super.onDestroy();
 		doUnBindService();
-		/*doStopService();*/
+		/* doStopService(); */
 	}
 
 	public interface OnItemSelected {
@@ -171,7 +198,9 @@ public class MyListFragment extends SherlockListFragment {
 					"Method:onCreateLoader;Using cursorLoader to load the data which queryed from contentresolver");
 			String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
 					RSSInfo.PUB_DATE, RSSInfo.LINK };
-			CursorLoaderNotAuto cursorLoader = new CursorLoaderNotAuto(getActivity(), RSSInfo.CONTENT_URI, projection, null, null, null);
+			CursorLoaderNotAuto cursorLoader = new CursorLoaderNotAuto(
+					getActivity(), RSSInfo.CONTENT_URI, projection, null, null,
+					null);
 			return cursorLoader;
 		}
 
@@ -201,8 +230,9 @@ public class MyListFragment extends SherlockListFragment {
 		setListAdapter(mAdapter);
 
 		// Initing loader
-		getActivity().getSupportLoaderManager().restartLoader(0, null, mLoaderCallBacks);
-		
+		getActivity().getSupportLoaderManager().restartLoader(0, null,
+				mLoaderCallBacks);
+
 		// Config the PullToRefresh plugin
 		((PullToRefreshListView) getListView()).onRefreshComplete();
 	}
@@ -256,7 +286,7 @@ public class MyListFragment extends SherlockListFragment {
 			isBounded = false;
 		}
 	}
-	
+
 	private class MyBroadcastReceiver extends BroadcastReceiver {
 
 		@Override
@@ -267,7 +297,7 @@ public class MyListFragment extends SherlockListFragment {
 			int type = bundle.getInt("type");
 			if (type == TestService.REFRESH_TASK_TYPE) {
 				fillData();
-			} else if (type == TestService.PERIODIC_TASK_TYPE){
+			} else if (type == TestService.PERIODIC_TASK_TYPE) {
 				if (rows > 0) {
 					Toast.makeText(getActivity(), "你有" + rows + "条新数据未更新",
 							Toast.LENGTH_SHORT).show();

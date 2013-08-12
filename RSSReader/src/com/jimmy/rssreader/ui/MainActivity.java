@@ -1,58 +1,36 @@
 package com.jimmy.rssreader.ui;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
-import com.actionbarsherlock.view.SubMenu;
 import com.jimmy.rssreader.R;
-import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.ui.MyListFragment.OnItemSelected;
-import com.markupartist.android.widget.PullToRefreshListView;
-import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
-
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-import android.database.ContentObserver;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.Log;
-import android.view.View;
-import android.widget.EditText;
 
 public class MainActivity extends SherlockFragmentActivity implements
 		OnItemSelected {
 	private static final String TAG = "MainActivity";
-	private static final int THEME = com.actionbarsherlock.R.style.Theme_Sherlock;
-
+	public static final int THEME = com.actionbarsherlock.R.style.Theme_Sherlock;
+	public static final int ARTICLE_FRAGMENT_POSITION = 1;
+	public static final int MYLIST_FRAGMENT_POSITION = 0;
+	
 	private static MyListFragment mMyListFragment;
 	private static ArticleFragment mArticleFragment;
 
-	ViewPager mViewPager;
-	TabsAdapter mTabsAdapter;
+	private ViewPager mViewPager;
+	private TabsAdapter mTabsAdapter;
 
 	@Override
 	protected void onCreate(Bundle bundle) {
 		Log.d(TAG, "Method:onCreate");
 		super.onCreate(bundle);
-		setTheme(R.style.Theme_Sherlock);
+		setTheme(R.style.Theme_Sherlock_Light);
 		setContentView(R.layout.news_articles);
-		mViewPager = (ViewPager) findViewById(R.id.fragment_container);
-
+		mViewPager = getViewPager();
+		
 		if (mViewPager != null) {
 			mTabsAdapter = new TabsAdapter(getSupportFragmentManager());
 			mViewPager.setAdapter(mTabsAdapter);
@@ -76,7 +54,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 	@Override
 	public void onItemSelected(int position) {
 		Log.d(TAG, "Method:onItemSelected");
-/*
+		/*
 		mArticleFragment = (ArticleFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.article_fragment);
 
@@ -98,10 +76,17 @@ public class MainActivity extends SherlockFragmentActivity implements
 		}*/
 		
 		mArticleFragment.updateArticleView(position);
-		mViewPager.setCurrentItem(1);
+		mViewPager.setCurrentItem(ARTICLE_FRAGMENT_POSITION);
+	}
+	
+	public ViewPager getViewPager() {
+		if (null == mViewPager) {
+			mViewPager = (ViewPager)findViewById(R.id.fragment_container);
+		}
+		return mViewPager;
 	}
 
-	@Override
+	/*@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// TODO Auto-generated method stub
 		boolean isLight = MainActivity.THEME == R.style.Theme_Sherlock_Light;
@@ -121,6 +106,8 @@ public class MainActivity extends SherlockFragmentActivity implements
 		sub.getItem().setShowAsAction(
 				MenuItem.SHOW_AS_ACTION_IF_ROOM
 						| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+		
+		
 		return true;
 	}
 
@@ -167,21 +154,21 @@ public class MainActivity extends SherlockFragmentActivity implements
 		fragmentTransaction.replace(fragmentId, newMyListFragment);
 		fragmentTransaction.addToBackStack(null);
 		fragmentTransaction.commit();
-	}
+	}*/
 
 	public static class TabsAdapter extends FragmentPagerAdapter {
 
 		public TabsAdapter(FragmentManager fm) {
 			super(fm);
-			// TODO Auto-generated constructor stub
 		}
 
 		@Override
 		public Fragment getItem(int position) {
+			Log.d(TAG, "Method:getItem(),position is " + position);
 			switch (position) {
-			case 0:
+			case MYLIST_FRAGMENT_POSITION:
 				return (mMyListFragment = new MyListFragment());
-			case 1:
+			case ARTICLE_FRAGMENT_POSITION:
 				return (mArticleFragment = new ArticleFragment());
 			default:
 				return null;
@@ -190,9 +177,8 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 		@Override
 		public int getCount() {
-			// TODO Auto-generated method stub
+			Log.d(TAG, "Method:getCount()");
 			return 2;
 		}
 	}
-
 }
