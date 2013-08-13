@@ -2,6 +2,7 @@ package com.jimmy.rssreader.contentprovider;
 
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfoColumn;
+import com.jimmy.rssreader.contentprovider.RSSContact.Sources;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -16,14 +17,33 @@ public class RSSInfoDatabase extends SQLiteOpenHelper{
 
 	interface Tables {
 		String RSSINFOS = "rssinfos";
+		String SOURCES = "sources";
 	}
 
-	private static final String CREATE_TABLE = "CREATE TABLE "
+	private static final String CREATE_TABLE_RSSINFOS = "CREATE TABLE "
 			+ Tables.RSSINFOS + " (" + RSSInfo.INFO_ID
 			+ " INTEGER PRIMARY KEY AUTOINCREMENT," 
 			+ RSSInfo.TITLE	+ " TEXT NOT NULL," 
 			+ RSSInfo.LINK + " TEXT NOT NULL,"
 			+ RSSInfo.PUB_DATE + " TEXT NOT NULL);";
+	
+	private static final String CREATE_TABLE_SOURCES = "CREATE TABLE "
+			+ Tables.SOURCES + "(" + Sources.SRC_ID
+			+ " INTEGER PRIMARY KEY AUTOINCREMENT,"
+			+ Sources.SRC_NAME + " TEXT NOT NULL,"
+			+ Sources.SRC_ADDR + " TEXT NOT NULL);";
+	
+	private static final String INSERT_WANGYI = "INSERT INTO " + Tables.SOURCES
+			+ "(" + Sources.SRC_NAME + "," + Sources.SRC_ADDR + ")"
+			+ "VALUES('ÍøÒ×','http://sports.163.com/special/00051K7F/rss_sportslq.xml');";
+	
+	private static final String INSERT_SINA = "INSERT INTO " + Tables.SOURCES
+			+ "(" + Sources.SRC_NAME + "," + Sources.SRC_ADDR + ")"
+			+ "VALUES('SINA','http://rss.sina.com.cn/sports/basketball/nba.xml');";
+	
+	private static final String INSERT_SOHU = "INSERT INTO " + Tables.SOURCES
+			+ "(" + Sources.SRC_NAME + "," + Sources.SRC_ADDR + ")"
+			+ "VALUES('ËÑºü','http://rss.sports.sohu.com/rss/nba.xml');";
 	
 	private static final String INSERT_DATA1 = "INSERT INTO " + Tables.RSSINFOS
 			+ "(" + RSSInfo.TITLE + "," + RSSInfo.LINK + "," + RSSInfo.PUB_DATE
@@ -57,7 +77,11 @@ public class RSSInfoDatabase extends SQLiteOpenHelper{
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		// TODO Auto-generated method stub
-		db.execSQL(CREATE_TABLE);
+		db.execSQL(CREATE_TABLE_RSSINFOS);
+		db.execSQL(CREATE_TABLE_SOURCES);
+		db.execSQL(INSERT_WANGYI);
+		db.execSQL(INSERT_SINA);
+		db.execSQL(INSERT_SOHU);
 	}
 
 	@Override
@@ -65,6 +89,7 @@ public class RSSInfoDatabase extends SQLiteOpenHelper{
 		// TODO Auto-generated method stub
 		if (oldVersion != DATABASE_VERSION) {
 			db.execSQL("DROP TABLE IF EXISTS " + Tables.RSSINFOS);
+			db.execSQL("DROP TABLE IF EXISTS " + Tables.SOURCES);
 			onCreate(db);
 		}
 	}

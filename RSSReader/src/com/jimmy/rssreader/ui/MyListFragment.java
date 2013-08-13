@@ -1,5 +1,7 @@
 package com.jimmy.rssreader.ui;
 
+import javax.xml.transform.Source;
+
 import com.actionbarsherlock.app.SherlockListFragment;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
@@ -7,14 +9,16 @@ import com.actionbarsherlock.view.MenuItem;
 import com.actionbarsherlock.view.SubMenu;
 import com.jimmy.rssreader.R;
 import com.jimmy.rssreader.async.FetchRSSInfoService;
-import com.jimmy.rssreader.async.FetchRSSInfoService.FetchRSSInfoBinder;
+import com.jimmy.rssreader.async.TestService;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
+import com.jimmy.rssreader.contentprovider.RSSContact.Sources;
 import com.markupartist.android.widget.PullToRefreshListView;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -38,8 +42,8 @@ public class MyListFragment extends SherlockListFragment {
 	public static final String TAG = "MyListFragment";
 	private static int rows = 0;
 
-	public FetchRSSInfoService mBoundService;
-	private MyServiceConnection mConnection = new MyServiceConnection();
+	public TestService mBoundService;
+	/*private MyServiceConnection mConnection = new MyServiceConnection();*/
 	private MyLoaderCallBacks mLoaderCallBacks = new MyLoaderCallBacks();
 	private MyBroadcastReceiver mReceiver = new MyBroadcastReceiver();
 	IntentFilter mFilter = new IntentFilter("com.jimmy.rssreader.datareceiver");
@@ -117,8 +121,8 @@ public class MyListFragment extends SherlockListFragment {
 					@Override
 					public void onRefresh() {
 						// Do work to refresh the list here.
-						doUnBindService();
-						doBindService();
+						doStopService();
+						doStartService();
 					}
 				});
 	}
@@ -128,14 +132,15 @@ public class MyListFragment extends SherlockListFragment {
 		Log.d(TAG, "Method:onCreate");
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-		doBindService();
-		/* doStartService(); */
+		/*doBindService();*/
+		doStartService();
 	}
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		Log.d(TAG, "Method:onCreateOptionsMenu");
 		super.onCreateOptionsMenu(menu, inflater);
+		//新增一个search bar
 		menu.add("Search")
 				.setIcon(R.drawable.ic_search_inverse)
 				.setActionView(R.layout.collapsible_edittext)
@@ -143,21 +148,34 @@ public class MyListFragment extends SherlockListFragment {
 						MenuItem.SHOW_AS_ACTION_ALWAYS
 								| MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
 
+		//从数据库当中查询新闻源
+		ContentResolver resolver = getActivity().getContentResolver();
+		String[] projection = {
+			Sources.SRC_ID,
+			Sources.SRC_NAME
+		};
+		Cursor cursor = resolver.query(Sources.CONTENT_URI, projection, null, null, null);
+		
+		//将源添加到submenu当中
 		SubMenu sub = menu.addSubMenu("Sources");
-		sub.add(0, 1, 1, "网易");
-		sub.add(0, 2, 2, "SINA");
-		sub.add(0, 3, 3, "SOHO");
-		sub.getItem().setShowAsAction(
-				MenuItem.SHOW_AS_ACTION_IF_ROOM
-						| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+		if(cursor != null) {
+			for(cursor.moveToFirst();!cursor.isAfterLast();cursor.moveToNext()) {
+				String id = cursor.getString(cursor.getColumnIndexOrThrow(Sources.SRC_ID));
+				String name = cursor.getString(cursor.getColumnIndexOrThrow(Sources.SRC_NAME));
+				sub.add(0, Integer.parseInt(id), Integer.parseInt(id), name);
+			}
+			sub.getItem().setShowAsAction(
+					MenuItem.SHOW_AS_ACTION_IF_ROOM
+							| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+		}
 	}
 
 	@Override
 	public void onDestroy() {
 		Log.d(TAG, "Method:onDestroy");
 		super.onDestroy();
-		doUnBindService();
-		/* doStopService(); */
+		/*doUnBindService();*/
+		doStopService(); 
 	}
 
 	public interface OnItemSelected {
@@ -219,7 +237,7 @@ public class MyListFragment extends SherlockListFragment {
 		mListener.onItemSelected(position);
 	}
 
-	public class MyServiceConnection implements ServiceConnection {
+/*	public class MyServiceConnection implements ServiceConnection {
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
@@ -231,26 +249,26 @@ public class MyListFragment extends SherlockListFragment {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			Log.d(TAG, "Method:onServiceConnected;");
-			mBoundService = ((FetchRSSInfoBinder) service).getService();
+			mBoundService = ((TestBinder) service).getService();
 
 			if (mBoundService != null) {
 				isBounded = true;
 			}
 		}
-	};
+	};*/
 
-	public void doBindService() {
+	/*public void doBindService() {
 		if(mUri == null || mUri.equals("")) {
 			mUri = getString(R.string.WANGYI_URI);
 		}
 		Log.d(TAG, "Method:doBindService;mUri is " + mUri);
-		/* Intent intent = new Intent(getActivity(), FetchRSSInfoService.class); */
-		Intent testIntent = new Intent(getActivity(), FetchRSSInfoService.class);
+		 Intent intent = new Intent(getActivity(), FetchRSSInfoService.class); 
+		Intent testIntent = new Intent(getActivity(), TestService.class);
 		testIntent.putExtra("uri", mUri);
-		/*
+		
 		 * testIntent.putExtra("link", mUri); testIntent.putExtra("title",
 		 * "Kid"); testIntent.putExtra("date", "2013/07/30");
-		 */
+		 
 
 		getActivity().bindService(testIntent, mConnection,
 				Context.BIND_AUTO_CREATE);
@@ -264,6 +282,21 @@ public class MyListFragment extends SherlockListFragment {
 			getActivity().unbindService(mConnection);
 			isBounded = false;
 		}
+	}*/
+	
+	public void doStartService() {
+		if(mUri == null || mUri.equals("")) {
+			mUri = getString(R.string.WANGYI_URI);
+		}
+		Log.d(TAG, "Method:doStartService;mUri is " + mUri);
+		Intent i =new Intent(getActivity(), TestService.class);
+		i.putExtra("uri", mUri);
+		getActivity().startService(i);
+	}
+	
+	public void doStopService() {
+		Intent i =new Intent(getActivity(), TestService.class);
+		getActivity().stopService(i);
 	}
 
 	private class MyBroadcastReceiver extends BroadcastReceiver {

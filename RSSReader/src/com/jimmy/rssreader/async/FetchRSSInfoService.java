@@ -31,28 +31,35 @@ import android.util.Log;
 import android.widget.Toast;
 
 public class FetchRSSInfoService extends Service {
+
 	public static final String TAG = "FetchRSSInfoService";
 	public static final String BOUND_SERVICE = "bound";
 	public static final int REFRESH_TASK_TYPE = 0;
 	public static final int PERIODIC_TASK_TYPE = 1;
 	/*public static final String START_SERVICE = "start";*/
 	private Timer mTimer = new Timer();
-	private FetchRSSInfoBinder mBinder = new FetchRSSInfoBinder();
 	private RSSReader mReader = new RSSReader();
-	private String mUri = "";
+	private String mUri;
 	private NotificationManager mNM;
 	private static int BOUND_NOTIFICATION = R.string.rss_bound_service;
 	
 	
 	@Override
 	public void onCreate() {
-		// TODO Auto-generated method stub
-		Log.d(TAG, "rssfetch--onCreate method inside,the uri is " + mUri);
 		super.onCreate();
 		mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		mUri = "";
+		Log.d(TAG, "rssfetch--onCreate method inside,the uri is " + mUri);
+	}
+	
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		Log.d(TAG, "Method:startcommand()-------");
+		mUri = intent.getStringExtra("uri");
 		if(mUri != null && !mUri.equals("")) {
 			fetchDataByRefreshing();
-		}
+		}		
+		return super.onStartCommand(intent, flags, startId);
 	}
 
 	public void fetchDataByRefreshing() {
@@ -66,7 +73,6 @@ public class FetchRSSInfoService extends Service {
 		showBoundNotification();
 		Timer timer = new Timer();
 		timer.schedule(new TimerTask() {
-			
 			@Override
 			public void run() {
 				new RSSAsyncTask(mReader, PERIODIC_TASK_TYPE).execute(mUri);
@@ -94,18 +100,9 @@ public class FetchRSSInfoService extends Service {
 		mReader.close();
 	}
 
-	public class FetchRSSInfoBinder extends Binder {
-		public FetchRSSInfoService getService() {
-			Log.d(TAG, "rssfetch--Method:getService()");
-			return FetchRSSInfoService.this;
-		}
-	}
-
 	@Override
 	public IBinder onBind(Intent intent) {
-		mUri = intent.getExtras().getString("uri");
-		Log.d(TAG, "rssfetch--Method:onBind(),uri is " + mUri);
-		return mBinder;
+		return null;
 	}
 
 	private class RSSAsyncTask extends AsyncTask<String, Void, Integer> {

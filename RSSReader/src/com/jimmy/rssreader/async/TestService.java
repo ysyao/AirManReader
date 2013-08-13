@@ -32,14 +32,15 @@ import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 
 public class TestService extends Service {
+
 	private static final String TAG = "TestService";
 	public static final String BOUND_SERVICE = "bound";
 	public static final int REFRESH_TASK_TYPE = 0;
 	public static final int PERIODIC_TASK_TYPE = 1;
 	/*public static final String START_SERVICE = "start";*/
 	private Timer mTimer = new Timer();
-	TestBinder mBinder;
-	TestServiceAsync mBoundTask;
+	
+	private String mUri;
 	/*TestServiceAsync mStartTask;*/
 	private NotificationManager mNM;
 	private static int BOUND_NOTIFICATION = R.string.rss_bound_service;
@@ -50,9 +51,19 @@ public class TestService extends Service {
 		super.onCreate();
 		Log.d(TAG, "Method:onCreate-----");
 		mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		fetchDataByRefeshing();
+		mUri = "";
 	}
-
+	
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		mUri = intent.getStringExtra("uri");
+		Log.d(TAG, "TestService ---- Method:onstartcommand:uri is " + mUri);
+		if(mUri != null && !mUri.equals("")) {
+			fetchDataByRefreshing();
+		}
+		return super.onStartCommand(intent, flags, startId);
+	}
+	
 	/*
 	 * @Override public int onStartCommand(Intent intent, int flags, int
 	 * startId) { Log.d(TAG, "Method:onStartCommand"); showStartNotification();
@@ -68,26 +79,17 @@ public class TestService extends Service {
 		// TODO Auto-generated method stub
 		super.onDestroy();
 		mTimer.cancel();
-		if(mBoundTask != null) {
-			mBoundTask.cancel(true);
-		}
 		mNM.cancel(BOUND_NOTIFICATION);
 		/* mNM.cancel(START_NOTIFICATION); */
 		stopSelf();
 	}
 
-	public class TestBinder extends Binder {
-		public TestService getService() {
-			return TestService.this;
-		}
-	}
-
 	@Override
 	public IBinder onBind(Intent intent) {
-		return mBinder;
+		return null;
 	}
 
-	public void fetchDataByRefeshing() {
+	public void fetchDataByRefreshing() {
 		Log.d(TAG, "Method:fetchDataFromRemote");
 		mTimer.cancel();
 		new TestServiceAsync(REFRESH_TASK_TYPE).execute();

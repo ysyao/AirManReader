@@ -5,6 +5,7 @@ import java.util.HashSet;
 
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfoColumn;
+import com.jimmy.rssreader.contentprovider.RSSContact.Sources;
 import com.jimmy.rssreader.contentprovider.RSSInfoDatabase.Tables;
 
 import android.content.ContentProvider;
@@ -26,6 +27,8 @@ public class RSSInfoProvider extends ContentProvider {
 
 	private static final int RSSINFOS = 1;
 	private static final int RSSINFOS_ID = 2;
+	private static final int SOURCES = 3;
+	private static final int SOURCES_ID = 4;
 
 	private static UriMatcher builderUriMatcher() {
 		final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -33,7 +36,8 @@ public class RSSInfoProvider extends ContentProvider {
 
 		matcher.addURI(authority, RSSContact.PATH_RSSINFO, RSSINFOS);
 		matcher.addURI(authority, RSSContact.PATH_RSSINFO + "/*", RSSINFOS_ID);
-
+		matcher.addURI(authority, RSSContact.PATH_SOURCES, SOURCES);
+		matcher.addURI(authority, RSSContact.PATH_SOURCES + "/*", SOURCES_ID);
 		return matcher;
 	}
 
@@ -53,6 +57,10 @@ public class RSSInfoProvider extends ContentProvider {
 			return RSSInfo.CONTENT_TYPE;
 		case RSSINFOS_ID:
 			return RSSInfo.CONTENT_ITEM_TYPE;
+		case SOURCES:
+			return Sources.CONTENT_TYPE;
+		case SOURCES_ID:
+			return Sources.CONTENT_ITEM_TYPE;
 		default:
 			throw new UnsupportedOperationException("Unknow URI " + uri);
 		}
@@ -70,6 +78,8 @@ public class RSSInfoProvider extends ContentProvider {
 		case RSSINFOS:
 			database.insert(Tables.RSSINFOS, null, values);
 			break;
+		case SOURCES:
+			database.insert(Tables.SOURCES, null, values);
 		default:
 			throw new IllegalArgumentException("Unkown URI" + uri);
 		}
@@ -90,23 +100,37 @@ public class RSSInfoProvider extends ContentProvider {
 		// TODO Auto-generated method stub
 		int uriType = sUriMatcher.match(uri);
 		SQLiteDatabase database = mOpenHelper.getReadableDatabase();
-		SQLiteQueryBuilder sqLiteQueryBuilder = new SQLiteQueryBuilder();
-		sqLiteQueryBuilder.setTables(Tables.RSSINFOS);
-		checkColumns(projection);
+		SQLiteQueryBuilder rssinfosQueryBuilder = new SQLiteQueryBuilder();
+		SQLiteQueryBuilder sourcesQueryBuilder = new SQLiteQueryBuilder();
+		rssinfosQueryBuilder.setTables(Tables.RSSINFOS);
+		sourcesQueryBuilder.setTables(Tables.SOURCES);
+		Cursor cursor = null;
 
 		switch (uriType) {
 		case RSSINFOS:
+			cursor = rssinfosQueryBuilder.query(database, projection,
+					selection, selectionArgs, null, null, sortOrder, null);
 			break;
 		case RSSINFOS_ID:
-			sqLiteQueryBuilder.appendWhere(RSSInfoColumn.INFO_ID + "="
+			rssinfosQueryBuilder.appendWhere(RSSInfoColumn.INFO_ID + "="
 					+ uri.getLastPathSegment());
+			cursor = rssinfosQueryBuilder.query(database, projection,
+					selection, selectionArgs, null, null, sortOrder, null);
+			break;
+		case SOURCES:
+			cursor = sourcesQueryBuilder.query(database, projection, selection,
+					selectionArgs, null, null, sortOrder, null);
+			break;
+		case SOURCES_ID:
+			sourcesQueryBuilder.appendWhere(Sources.SRC_ID + "="
+					+ uri.getLastPathSegment());
+			cursor = sourcesQueryBuilder.query(database, projection, selection,
+					selectionArgs, null, null, sortOrder, null);
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown uri " + uri);
 		}
 
-		Cursor cursor = sqLiteQueryBuilder.query(database, projection,
-				selection, selectionArgs, null, null, sortOrder, null);
 		cursor.setNotificationUri(getContext().getContentResolver(), uri);
 		return cursor;
 	}
@@ -114,7 +138,7 @@ public class RSSInfoProvider extends ContentProvider {
 	@Override
 	public int update(Uri uri, ContentValues values, String selection,
 			String[] selectionArgs) {
-		// TODO Auto-generated method stub
+
 		int uriType = sUriMatcher.match(uri);
 		SQLiteDatabase database = mOpenHelper.getWritableDatabase();
 		int updateRows = 0;
@@ -135,6 +159,22 @@ public class RSSInfoProvider extends ContentProvider {
 						selection + " and " + RSSInfoColumn.INFO_ID + "="
 								+ uri.getLastPathSegment(), selectionArgs);
 
+			}
+			break;
+		case SOURCES:
+			updateRows = database.update(Tables.SOURCES, values, selection,
+					selectionArgs);
+			break;
+		case SOURCES_ID:
+			if (TextUtils.isEmpty(selection)) {
+				updateRows = database.update(Tables.SOURCES, values,
+						Sources.SRC_ID + "=" + uri.getLastPathSegment(), null);
+			} else {
+				updateRows = database.update(
+						Tables.SOURCES,
+						values,
+						selection + " and " + Sources.SRC_ID + "="
+								+ uri.getLastPathSegment(), selectionArgs);
 			}
 			break;
 		default:
@@ -160,11 +200,26 @@ public class RSSInfoProvider extends ContentProvider {
 			if (TextUtils.isEmpty(selection)) {
 				deleteRows = database.delete(Tables.RSSINFOS,
 						RSSInfoColumn.INFO_ID + "=" + uri.getLastPathSegment(),
-						selectionArgs);
+						null);
 			} else {
 				deleteRows = database.delete(
 						Tables.RSSINFOS,
 						selection + " and " + RSSInfoColumn.INFO_ID + "="
+								+ uri.getLastPathSegment(), selectionArgs);
+			}
+			break;
+		case SOURCES:
+			deleteRows = database.delete(Tables.SOURCES, selection,
+					selectionArgs);
+			break;
+		case SOURCES_ID:
+			if (TextUtils.isEmpty(selection)) {
+				deleteRows = database.delete(Tables.SOURCES, Sources.SRC_ID
+						+ "=" + uri.getLastPathSegment(), null);
+			} else {
+				deleteRows = database.delete(
+						Tables.SOURCES,
+						selection + " and " + Sources.SRC_ID + "="
 								+ uri.getLastPathSegment(), selectionArgs);
 			}
 			break;
@@ -173,22 +228,5 @@ public class RSSInfoProvider extends ContentProvider {
 		}
 		getContext().getContentResolver().notifyChange(uri, null);
 		return deleteRows;
-	}
-
-	public void checkColumns(String[] projection) {
-		String[] available = { RSSInfo.INFO_ID, RSSInfo.TITLE, RSSInfo.LINK,
-				RSSInfo.PUB_DATE };
-
-		if (projection != null) {
-			HashSet<String> requestColumns = new HashSet<String>(
-					Arrays.asList(projection));
-			HashSet<String> availableColumns = new HashSet<String>(
-					Arrays.asList(available));
-
-			if (!availableColumns.containsAll(requestColumns)) {
-				throw new IllegalArgumentException(
-						"Unknown columns in projection");
-			}
-		}
 	}
 }
