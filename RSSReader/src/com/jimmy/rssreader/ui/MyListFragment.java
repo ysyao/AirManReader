@@ -251,7 +251,6 @@ public class MyListFragment extends SherlockListFragment {
 		 * testIntent.putExtra("link", mUri); testIntent.putExtra("title",
 		 * "Kid"); testIntent.putExtra("date", "2013/07/30");
 		 */
-
 		getActivity().bindService(testIntent, mConnection,
 				Context.BIND_AUTO_CREATE);
 		isBounded = true;
