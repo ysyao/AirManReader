@@ -14,12 +14,14 @@ public class MainActivity extends SherlockFragmentActivity implements
 		OnItemSelected {
 	private static final String TAG = "MainActivity";
 	public static final int THEME = com.actionbarsherlock.R.style.Theme_Sherlock;
-	public static final int ARTICLE_FRAGMENT_POSITION = 1;
 	public static final int MYLIST_FRAGMENT_POSITION = 0;
+	public static final int ARTICLE_FRAGMENT_POSITION = 1;
+	public static final int SETTING_FRAGMENT_POSITION = 2;
 	
 	private static MyListFragment mMyListFragment;
 	private static ArticleFragment mArticleFragment;
-
+	private static SettingFragment mSettingFragment;
+	
 	private ViewPager mViewPager;
 	private TabsAdapter mTabsAdapter;
 
@@ -74,7 +76,6 @@ public class MainActivity extends SherlockFragmentActivity implements
 			fragmentTransaction.addToBackStack(null);
 			fragmentTransaction.commit();
 		}*/
-		
 		mArticleFragment.updateArticleView(position);
 		mViewPager.setCurrentItem(ARTICLE_FRAGMENT_POSITION);
 	}
@@ -170,6 +171,8 @@ public class MainActivity extends SherlockFragmentActivity implements
 				return (mMyListFragment = new MyListFragment());
 			case ARTICLE_FRAGMENT_POSITION:
 				return (mArticleFragment = new ArticleFragment());
+			case SETTING_FRAGMENT_POSITION:
+				return (mSettingFragment = new SettingFragment());
 			default:
 				return null;
 			}
@@ -178,7 +181,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 		@Override
 		public int getCount() {
 			Log.d(TAG, "Method:getCount()");
-			return 2;
+			return 3;
 		}
 	}
 }

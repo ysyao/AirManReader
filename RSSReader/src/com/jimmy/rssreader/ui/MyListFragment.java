@@ -3,6 +3,7 @@ package com.jimmy.rssreader.ui;
 import javax.xml.transform.Source;
 
 import com.actionbarsherlock.app.SherlockListFragment;
+import com.actionbarsherlock.view.ActionMode;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
@@ -34,6 +35,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -41,9 +44,10 @@ public class MyListFragment extends SherlockListFragment {
 
 	public static final String TAG = "MyListFragment";
 	private static int rows = 0;
+	ActionMode mMode;
 
 	public TestService mBoundService;
-	/*private MyServiceConnection mConnection = new MyServiceConnection();*/
+	/* private MyServiceConnection mConnection = new MyServiceConnection(); */
 	private MyLoaderCallBacks mLoaderCallBacks = new MyLoaderCallBacks();
 	private MyBroadcastReceiver mReceiver = new MyBroadcastReceiver();
 	IntentFilter mFilter = new IntentFilter("com.jimmy.rssreader.datareceiver");
@@ -91,7 +95,7 @@ public class MyListFragment extends SherlockListFragment {
 				"Method:onCreateView;Connect the view pull_to_refresh to MyListFragment");
 		// Connect the view pull_to_refresh to MyListFragment
 		View view = inflater
-				.inflate(R.layout.pull_to_refresh, container, false);
+				.inflate(R.layout.mylistfragment_listview, container, false);
 		return view;
 	}
 
@@ -106,6 +110,7 @@ public class MyListFragment extends SherlockListFragment {
 				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		mEditor = mSharedPreferences.edit();
 		
+		//初始化from,to,设置simplecursoradapter		
 		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE };
 		int[] to = { R.id.titleTV, R.id.pubdateTV };
 
@@ -115,7 +120,7 @@ public class MyListFragment extends SherlockListFragment {
 		getActivity().getSupportLoaderManager().initLoader(0, null,
 				mLoaderCallBacks);
 
-		// Setting up the little plugin here.
+		// 设置PullToRefreshListView插件
 		((PullToRefreshListView) getListView())
 				.setOnRefreshListener(new OnRefreshListener() {
 					@Override
@@ -125,6 +130,9 @@ public class MyListFragment extends SherlockListFragment {
 						doStartService();
 					}
 				});
+		
+		//添加actionMode的listener
+		
 	}
 
 	@Override
@@ -132,7 +140,7 @@ public class MyListFragment extends SherlockListFragment {
 		Log.d(TAG, "Method:onCreate");
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-		/*doBindService();*/
+		/* doBindService(); */
 		doStartService();
 	}
 
@@ -140,42 +148,77 @@ public class MyListFragment extends SherlockListFragment {
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		Log.d(TAG, "Method:onCreateOptionsMenu");
 		super.onCreateOptionsMenu(menu, inflater);
-		//新增一个search bar
-		menu.add("Search")
+		// 新增一个刷新按钮
+		menu.add(1, 1, 1, "Refresh")
+				.setIcon(R.drawable.ic_refresh_inverse)
+				.setShowAsAction(
+						MenuItem.SHOW_AS_ACTION_ALWAYS
+								| MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+
+		// 新增一个search bar
+		menu.add(1, 2, 2, "Search")
 				.setIcon(R.drawable.ic_search_inverse)
 				.setActionView(R.layout.collapsible_edittext)
 				.setShowAsAction(
 						MenuItem.SHOW_AS_ACTION_ALWAYS
 								| MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
 
-		//从数据库当中查询新闻源
+		// 新增一个设置按钮
+		menu.add(1, 3, 3, "Setting")
+				.setIcon(R.drawable.gear_setting)
+				.setShowAsAction(
+						MenuItem.SHOW_AS_ACTION_ALWAYS
+								| MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+
+		// 从数据库当中查询新闻源
 		ContentResolver resolver = getActivity().getContentResolver();
-		String[] projection = {
-			Sources.SRC_ID,
-			Sources.SRC_NAME
-		};
-		Cursor cursor = resolver.query(Sources.CONTENT_URI, projection, null, null, null);
-		
-		//将源添加到submenu当中
-		SubMenu sub = menu.addSubMenu("Sources");
-		if(cursor != null) {
-			for(cursor.moveToFirst();!cursor.isAfterLast();cursor.moveToNext()) {
-				String id = cursor.getString(cursor.getColumnIndexOrThrow(Sources.SRC_ID));
-				String name = cursor.getString(cursor.getColumnIndexOrThrow(Sources.SRC_NAME));
+		String[] projection = { Sources.SRC_ID, Sources.SRC_NAME };
+		Cursor cursor = resolver.query(Sources.CONTENT_URI, projection, null,
+				null, null);
+
+		// 将源添加到submenu当中
+		SubMenu sub = menu.addSubMenu(1, 4, 4, "SOURCES");
+		if (cursor != null) {
+			for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor
+					.moveToNext()) {
+				String id = cursor.getString(cursor
+						.getColumnIndexOrThrow(Sources.SRC_ID));
+				String name = cursor.getString(cursor
+						.getColumnIndexOrThrow(Sources.SRC_NAME));
 				sub.add(0, Integer.parseInt(id), Integer.parseInt(id), name);
 			}
-			sub.getItem().setShowAsAction(
-					MenuItem.SHOW_AS_ACTION_IF_ROOM
-							| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
 		}
+		sub.getItem().setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+		sub.getItem().setIcon(R.drawable.filter);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		Log.d(TAG, "Method:onOptionsItemSelected");
+		int id = item.getItemId();
+		switch (id) {
+		case 1:
+			doStopService();
+			doStartService();
+			break;
+		case 2:
+			Toast.makeText(getActivity(), "Search", Toast.LENGTH_SHORT).show();
+			break;
+		case 3:
+			((MainActivity) getActivity()).getViewPager().setCurrentItem(
+					MainActivity.SETTING_FRAGMENT_POSITION);
+		default:
+			return false;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 	@Override
 	public void onDestroy() {
 		Log.d(TAG, "Method:onDestroy");
 		super.onDestroy();
-		/*doUnBindService();*/
-		doStopService(); 
+		/* doUnBindService(); */
+		doStopService();
 	}
 
 	public interface OnItemSelected {
@@ -190,7 +233,7 @@ public class MyListFragment extends SherlockListFragment {
 			Log.d(TAG,
 					"Method:onCreateLoader;Using cursorLoader to load the data which queryed from contentresolver");
 			String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
-					RSSInfo.PUB_DATE};
+					RSSInfo.PUB_DATE };
 			CursorLoaderNotAuto cursorLoader = new CursorLoaderNotAuto(
 					getActivity(), RSSInfo.CONTENT_URI, projection, null, null,
 					null);
@@ -237,65 +280,18 @@ public class MyListFragment extends SherlockListFragment {
 		mListener.onItemSelected(position);
 	}
 
-/*	public class MyServiceConnection implements ServiceConnection {
-
-		@Override
-		public void onServiceDisconnected(ComponentName name) {
-			Log.d(TAG, "Method:onServiceDisconnected;");
-			isBounded = false;
-			mBoundService = null;
-		}
-
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service) {
-			Log.d(TAG, "Method:onServiceConnected;");
-			mBoundService = ((TestBinder) service).getService();
-
-			if (mBoundService != null) {
-				isBounded = true;
-			}
-		}
-	};*/
-
-	/*public void doBindService() {
-		if(mUri == null || mUri.equals("")) {
-			mUri = getString(R.string.WANGYI_URI);
-		}
-		Log.d(TAG, "Method:doBindService;mUri is " + mUri);
-		 Intent intent = new Intent(getActivity(), FetchRSSInfoService.class); 
-		Intent testIntent = new Intent(getActivity(), TestService.class);
-		testIntent.putExtra("uri", mUri);
-		
-		 * testIntent.putExtra("link", mUri); testIntent.putExtra("title",
-		 * "Kid"); testIntent.putExtra("date", "2013/07/30");
-		 
-
-		getActivity().bindService(testIntent, mConnection,
-				Context.BIND_AUTO_CREATE);
-		isBounded = true;
-	}
-
-	public void doUnBindService() {
-		Log.d(TAG, "Method:doUnBindService;");
-
-		if (isBounded) {
-			getActivity().unbindService(mConnection);
-			isBounded = false;
-		}
-	}*/
-	
 	public void doStartService() {
-		if(mUri == null || mUri.equals("")) {
+		if (mUri == null || mUri.equals("")) {
 			mUri = getString(R.string.WANGYI_URI);
 		}
 		Log.d(TAG, "Method:doStartService;mUri is " + mUri);
-		Intent i =new Intent(getActivity(), TestService.class);
+		Intent i = new Intent(getActivity(), TestService.class);
 		i.putExtra("uri", mUri);
 		getActivity().startService(i);
 	}
-	
+
 	public void doStopService() {
-		Intent i =new Intent(getActivity(), TestService.class);
+		Intent i = new Intent(getActivity(), TestService.class);
 		getActivity().stopService(i);
 	}
 

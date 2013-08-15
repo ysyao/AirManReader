@@ -910,12 +910,15 @@ containing a value of this type.
         public static final int abs__textfield_searchview_right_holo_dark=0x7f02006d;
         public static final int abs__textfield_searchview_right_holo_light=0x7f02006e;
         public static final int abs__toast_frame=0x7f02006f;
-        public static final int ic_launcher=0x7f020070;
-        public static final int ic_pulltorefresh_arrow=0x7f020071;
-        public static final int ic_search=0x7f020072;
-        public static final int ic_search_inverse=0x7f020073;
-        public static final int icon=0x7f020074;
-        public static final int pull_to_refresh_header_background=0x7f020075;
+        public static final int filter=0x7f020070;
+        public static final int gear_setting=0x7f020071;
+        public static final int ic_launcher=0x7f020072;
+        public static final int ic_pulltorefresh_arrow=0x7f020073;
+        public static final int ic_refresh_inverse=0x7f020074;
+        public static final int ic_search=0x7f020075;
+        public static final int ic_search_inverse=0x7f020076;
+        public static final int icon=0x7f020077;
+        public static final int pull_to_refresh_header_background=0x7f020078;
     }
     public static final class id {
         public static final int abs__action_bar=0x7f050020;
@@ -1013,12 +1016,13 @@ containing a value of this type.
         public static final int article_view=0x7f030017;
         public static final int collapsible_edittext=0x7f030018;
         public static final int headline_view=0x7f030019;
-        public static final int news_articles=0x7f03001a;
-        public static final int pull_to_refresh=0x7f03001b;
+        public static final int mylistfragment_listview=0x7f03001a;
+        public static final int news_articles=0x7f03001b;
         public static final int pull_to_refresh_header=0x7f03001c;
         public static final int rss_insert_row=0x7f03001d;
-        public static final int sherlock_spinner_dropdown_item=0x7f03001e;
-        public static final int sherlock_spinner_item=0x7f03001f;
+        public static final int setting_fragment_listview=0x7f03001e;
+        public static final int sherlock_spinner_dropdown_item=0x7f03001f;
+        public static final int sherlock_spinner_item=0x7f030020;
     }
     public static final class menu {
         public static final int main=0x7f0b0000;

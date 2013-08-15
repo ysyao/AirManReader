@@ -8,9 +8,9 @@ package com.markupartist.android.widget.pulltorefresh;
 
 public final class R {
 	public static final class drawable {
-		public static final int ic_pulltorefresh_arrow = 0x7f020071;
-		public static final int icon = 0x7f020074;
-		public static final int pull_to_refresh_header_background = 0x7f020075;
+		public static final int ic_pulltorefresh_arrow = 0x7f020073;
+		public static final int icon = 0x7f020077;
+		public static final int pull_to_refresh_header_background = 0x7f020078;
 	}
 	public static final class id {
 		public static final int pull_to_refresh_header = 0x7f050038;
