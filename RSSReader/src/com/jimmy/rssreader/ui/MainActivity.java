@@ -11,7 +11,8 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 
 public class MainActivity extends SherlockFragmentActivity implements
-		OnItemSelected {
+		OnItemSelected,
+		ViewPager.OnPageChangeListener{
 	private static final String TAG = "MainActivity";
 	public static final int THEME = com.actionbarsherlock.R.style.Theme_Sherlock;
 	public static final int MYLIST_FRAGMENT_POSITION = 0;
@@ -183,5 +184,21 @@ public class MainActivity extends SherlockFragmentActivity implements
 			Log.d(TAG, "Method:getCount()");
 			return 3;
 		}
+	}
+
+	@Override
+	public void onPageScrollStateChanged(int position) {
+		// TODO Auto-generated method stub
+		mViewPager.setCurrentItem(position);
+	}
+
+	@Override
+	public void onPageScrolled(int arg0, float arg1, int arg2) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPageSelected(int position) {
 	}
 }

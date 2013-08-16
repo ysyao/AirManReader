@@ -69,7 +69,7 @@ public class ArticleFragment extends SherlockFragment {
 		Log.d(TAG, "Method in the ArticleFragment:onCreateOptionsMenu");
 		super.onCreateOptionsMenu(menu, inflater);
 
-		menu.add(1,1,1,"BACK")
+		menu.add(2, 1, 1, "BACK")
 				.setIcon(R.drawable.abs__ic_cab_done_holo_light)
 				.setActionView(R.layout.article_actionbar_textview)
 				.setShowAsAction(
@@ -80,11 +80,12 @@ public class ArticleFragment extends SherlockFragment {
 	@Override
 	public boolean onOptionsItemSelected(
 			com.actionbarsherlock.view.MenuItem item) {
+		Log.d(TAG, "Method in the ArticleFragment:onOptionsItemSelected");
 		int id = item.getItemId();
 		switch (id) {
-		case	1:
+		case 1:
 			((MainActivity) getActivity()).getViewPager().setCurrentItem(
-					MainActivity.MYLIST_FRAGMENT_POSITION);
+					MainActivity.MYLIST_FRAGMENT_POSITION,true);
 			break;
 		default:
 			return false;
