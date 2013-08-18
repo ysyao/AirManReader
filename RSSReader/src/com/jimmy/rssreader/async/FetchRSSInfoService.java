@@ -65,7 +65,7 @@ public class FetchRSSInfoService extends Service {
 	public void fetchDataByRefreshing() {
 		Log.d(TAG, "rssfetch--Method:fetchDataByRefreshing,mUri is " + mUri);
 		new RSSAsyncTask(mReader, REFRESH_TASK_TYPE).execute(mUri);
-		mTimer = fetchDataPeriodic(50000, 50000);
+//		mTimer = fetchDataPeriodic(50000, 50000);
 	}
 	
 	public Timer fetchDataPeriodic(long delay, long period) {

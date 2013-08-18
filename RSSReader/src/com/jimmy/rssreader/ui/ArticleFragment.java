@@ -138,7 +138,6 @@ public class ArticleFragment extends SherlockFragment {
 
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
-		// TODO Auto-generated method stub
 		super.onSaveInstanceState(outState);
 		outState.putInt(ARG_POSITION, mCurrentPosition);
 	}
@@ -159,6 +158,7 @@ public class ArticleFragment extends SherlockFragment {
 
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
+			view.loadUrl(url);
 			return true;
 		}
 

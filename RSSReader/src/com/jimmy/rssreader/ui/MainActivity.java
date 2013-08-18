@@ -78,7 +78,9 @@ public class MainActivity extends SherlockFragmentActivity implements
 			fragmentTransaction.commit();
 		}*/
 		mArticleFragment.updateArticleView(position);
-		mViewPager.setCurrentItem(ARTICLE_FRAGMENT_POSITION);
+		if(mViewPager != null) {
+			mViewPager.setCurrentItem(ARTICLE_FRAGMENT_POSITION);
+		}
 	}
 	
 	public ViewPager getViewPager() {

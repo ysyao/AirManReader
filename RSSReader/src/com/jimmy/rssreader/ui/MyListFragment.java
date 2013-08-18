@@ -56,7 +56,7 @@ public class MyListFragment extends SherlockListFragment {
 	private int mMask;
 	private GestureDetector gestureScanner;
 
-	public TestService mBoundService;
+	public FetchRSSInfoService mBoundService;
 	/* private MyServiceConnection mConnection = new MyServiceConnection(); */
 	private MyLoaderCallBacks mLoaderCallBacks = new MyLoaderCallBacks();
 	private MyBroadcastReceiver mReceiver = new MyBroadcastReceiver();
@@ -256,13 +256,13 @@ public class MyListFragment extends SherlockListFragment {
 			mUri = getString(R.string.WANGYI_URI);
 		}
 		Log.d(TAG, "Method:doStartService;mUri is " + mUri);
-		Intent i = new Intent(getActivity(), TestService.class);
+		Intent i = new Intent(getActivity(), FetchRSSInfoService.class);
 		i.putExtra("uri", mUri);
 		getActivity().startService(i);
 	}
 
 	public void doStopService() {
-		Intent i = new Intent(getActivity(), TestService.class);
+		Intent i = new Intent(getActivity(), FetchRSSInfoService.class);
 		getActivity().stopService(i);
 	}
 
