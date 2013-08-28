@@ -14,6 +14,7 @@ import com.jimmy.rssreader.async.FetchRSSInfoService;
 import com.jimmy.rssreader.async.TestService;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.contentprovider.RSSContact.Sources;
+import com.jimmy.rssreader.ui.MainActivity.TabsAdapter;
 import com.markupartist.android.widget.PullToRefreshListView;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
@@ -33,6 +34,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -48,7 +50,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 public class MyListFragment extends SherlockListFragment {
-
 	public static final String TAG = "MyListFragment";
 	private static int rows = 0;
 	private static ActionMode mMode;
@@ -56,7 +57,7 @@ public class MyListFragment extends SherlockListFragment {
 	private int mMask;
 	private GestureDetector gestureScanner;
 
-	public FetchRSSInfoService mBoundService;
+	public TestService mBoundService;
 	/* private MyServiceConnection mConnection = new MyServiceConnection(); */
 	private MyLoaderCallBacks mLoaderCallBacks = new MyLoaderCallBacks();
 	private MyBroadcastReceiver mReceiver = new MyBroadcastReceiver();
@@ -65,8 +66,7 @@ public class MyListFragment extends SherlockListFragment {
 	 * private MyHandler mHandler = new MyHandler(); private MyContentObserver
 	 * mObserver = new MyContentObserver(getActivity(), mHandler);
 	 */
-
-	private boolean isBounded = false;
+	
 	OnItemSelected mListener;
 	SharedPreferences mSharedPreferences;
 	SharedPreferences.Editor mEditor;
@@ -175,8 +175,11 @@ public class MyListFragment extends SherlockListFragment {
 		int id = item.getItemId();
 		switch (id) {
 		case 1:
-			((MainActivity) getActivity()).getViewPager().setCurrentItem(
-					MainActivity.SETTING_FRAGMENT_POSITION);
+			ViewPager pager = ((MainActivity)getActivity()).getViewPager();
+			TabsAdapter tab = ((MainActivity)getActivity()).getTabsAdapter(pager);
+			pager.setCurrentItem(tab.findTabByClassName(SettingFragment.class));
+			/*((MainActivity) getActivity()).getViewPager().setCurrentItem(
+					MainActivity.SETTING_FRAGMENT_POSITION);*/
 			break;
 		default:
 			return false;
@@ -256,13 +259,13 @@ public class MyListFragment extends SherlockListFragment {
 			mUri = getString(R.string.WANGYI_URI);
 		}
 		Log.d(TAG, "Method:doStartService;mUri is " + mUri);
-		Intent i = new Intent(getActivity(), FetchRSSInfoService.class);
+		Intent i = new Intent(getActivity(), TestService.class);
 		i.putExtra("uri", mUri);
 		getActivity().startService(i);
 	}
 
 	public void doStopService() {
-		Intent i = new Intent(getActivity(), FetchRSSInfoService.class);
+		Intent i = new Intent(getActivity(), TestService.class);
 		getActivity().stopService(i);
 	}
 
@@ -336,8 +339,11 @@ public class MyListFragment extends SherlockListFragment {
 						.show();
 				break;
 			case 4:
-				((MainActivity) getActivity()).getViewPager().setCurrentItem(
-						MainActivity.SETTING_FRAGMENT_POSITION,true);
+				ViewPager pager = ((MainActivity)getActivity()).getViewPager();
+				TabsAdapter tab = ((MainActivity)getActivity()).getTabsAdapter(pager);
+				pager.setCurrentItem(tab.findTabByClassName(SettingFragment.class));
+				/*((MainActivity) getActivity()).getViewPager().setCurrentItem(
+						MainActivity.SETTING_FRAGMENT_POSITION,true);*/
 				break;
 			default:
 				return false;

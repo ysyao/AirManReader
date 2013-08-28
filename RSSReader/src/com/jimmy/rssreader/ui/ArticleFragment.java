@@ -5,11 +5,12 @@ import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.jimmy.rssreader.R;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
-import com.jimmy.rssreader.ui.widget.MyWebView;
+import com.jimmy.rssreader.ui.MainActivity.TabsAdapter;
 
 import android.app.ActionBar;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -84,8 +85,11 @@ public class ArticleFragment extends SherlockFragment {
 		int id = item.getItemId();
 		switch (id) {
 		case 1:
-			((MainActivity) getActivity()).getViewPager().setCurrentItem(
-					MainActivity.MYLIST_FRAGMENT_POSITION,true);
+			ViewPager pager = ((MainActivity)getActivity()).getViewPager();
+			TabsAdapter tab = ((MainActivity)getActivity()).getTabsAdapter(pager);
+			pager.setCurrentItem(tab.findTabByClassName(MyListFragment.class));
+			/*((MainActivity) getActivity()).getViewPager().setCurrentItem(
+					MainActivity.MYLIST_FRAGMENT_POSITION,true);*/
 			break;
 		default:
 			return false;
