@@ -6,23 +6,27 @@ import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.widget.CursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 public class MyListAdapter extends CursorAdapter {
+	private static final String TAG = "MyListAdapter";
 	private LayoutInflater mInflater;
 	private Cursor c;
 	
 	public MyListAdapter(Context context, Cursor c) {
 		super(context, c);
+		c.moveToFirst();
 		this.mInflater = LayoutInflater.from(context);
 		this.c = c;
 	}
 	
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
+		Log.d(TAG, "convertView is " + convertView);
 		ViewHolder holder;
 		if(convertView == null) {
 			holder = new ViewHolder();

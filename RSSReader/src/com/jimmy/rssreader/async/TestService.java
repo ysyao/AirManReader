@@ -93,7 +93,7 @@ public class TestService extends Service {
 		Log.d(TAG, "Method:fetchDataFromRemote");
 		mTimer.cancel();
 		new TestServiceAsync(REFRESH_TASK_TYPE).execute();
-		mTimer = fetchDataPeriodic(50000, 50000);
+		/*mTimer = fetchDataPeriodic(50000, 50000);*/
 	}
 	
 	public Timer fetchDataPeriodic(long delay, long period) {
@@ -117,12 +117,17 @@ public class TestService extends Service {
 		ContentValues values1 = new ContentValues();
 		ContentValues values2 = new ContentValues();
 		ContentValues values3 = new ContentValues();
+		
+		Random id = new Random();
+		values1.put(RSSInfo.RES_ID, (int)Math.rint(Math.random()*2 + 1));
 		values1.put(RSSInfo.TITLE, "Kobe For random");
 		values1.put(RSSInfo.LINK, "www.Kobe.com");
 		values1.put(RSSInfo.PUB_DATE, formatter.format(new java.util.Date()));
+		values2.put(RSSInfo.RES_ID, (int)Math.rint(Math.random()*2 + 1));
 		values2.put(RSSInfo.TITLE, "Jordan For random");
 		values2.put(RSSInfo.LINK, "www.Jordan.com");
 		values2.put(RSSInfo.PUB_DATE, formatter.format(new java.util.Date()));
+		values3.put(RSSInfo.RES_ID, (int)Math.rint(Math.random()*2 + 1));
 		values3.put(RSSInfo.TITLE, "James For random");
 		values3.put(RSSInfo.LINK, "www.James.com");
 		values3.put(RSSInfo.PUB_DATE, formatter.format(new java.util.Date()));

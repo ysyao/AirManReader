@@ -7,6 +7,7 @@ public class RSSContact {
 
 	interface RSSInfoColumn {
 		String INFO_ID = "_id";
+		String RES_ID = "resource_id";
 		String TITLE = "title";
 		String LINK = "link";
 		String PUB_DATE = "pub_date";

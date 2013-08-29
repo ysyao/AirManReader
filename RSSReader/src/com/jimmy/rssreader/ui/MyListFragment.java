@@ -15,6 +15,7 @@ import com.jimmy.rssreader.async.TestService;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.contentprovider.RSSContact.Sources;
 import com.jimmy.rssreader.ui.MainActivity.TabsAdapter;
+import com.jimmy.rssreader.ui.widget.MyListAdapter;
 import com.markupartist.android.widget.PullToRefreshListView;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
@@ -52,10 +53,6 @@ import android.widget.Toast;
 public class MyListFragment extends SherlockListFragment {
 	public static final String TAG = "MyListFragment";
 	private static int rows = 0;
-	private static ActionMode mMode;
-	private static float mOffsetY = 1;
-	private int mMask;
-	private GestureDetector gestureScanner;
 
 	public TestService mBoundService;
 	/* private MyServiceConnection mConnection = new MyServiceConnection(); */
@@ -66,11 +63,11 @@ public class MyListFragment extends SherlockListFragment {
 	 * private MyHandler mHandler = new MyHandler(); private MyContentObserver
 	 * mObserver = new MyContentObserver(getActivity(), mHandler);
 	 */
-	
+	Cursor mCursor;
 	OnItemSelected mListener;
 	SharedPreferences mSharedPreferences;
 	SharedPreferences.Editor mEditor;
-	SimpleCursorAdapter mAdapter;
+	MyListAdapter mAdapter;
 	private String mUri = "";
 	int updateNum = 0;
 
@@ -121,14 +118,23 @@ public class MyListFragment extends SherlockListFragment {
 		mEditor = mSharedPreferences.edit();
 
 		// 初始化from,to,设置simplecursoradapter
-		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE };
-		int[] to = { R.id.titleTV, R.id.pubdateTV };
+		String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
+				RSSInfo.PUB_DATE };
+		/* int[] to = { R.id.titleTV, R.id.pubdateTV }; */
 
-		mAdapter = new SimpleCursorAdapter(getActivity(),
-				R.layout.rss_insert_row, null, from, to, 0);
-		setListAdapter(mAdapter);
-		getActivity().getSupportLoaderManager().initLoader(0, null,
-				mLoaderCallBacks);
+		/*mCursor = getActivity().getContentResolver().query(RSSInfo.CONTENT_URI,
+				projection, null, null, null);
+		mAdapter = new MyListAdapter(getActivity(), mCursor);*/
+
+		/*
+		 * mAdapter = new SimpleCursorAdapter(getActivity(),
+		 * R.layout.rss_insert_row, null, from, to, 0);
+		 */
+		/*setListAdapter(mAdapter);*/
+		/*
+		 * getActivity().getSupportLoaderManager().initLoader(0, null,
+		 * mLoaderCallBacks);
+		 */
 
 		// 设置PullToRefreshListView插件
 		((PullToRefreshListView) getListView())
@@ -140,11 +146,6 @@ public class MyListFragment extends SherlockListFragment {
 						doStartService();
 					}
 				});
-
-		// 设置时间屏蔽位
-		mMask = 1;
-		// 添加actionMode的listener
-		getListView().setOnTouchListener(new MyOnToucheListener());
 	}
 
 	@Override
@@ -161,8 +162,46 @@ public class MyListFragment extends SherlockListFragment {
 		Log.d(TAG, "Method:onCreateOptionsMenu");
 		super.onCreateOptionsMenu(menu, inflater);
 
+		// 新增一个刷新按钮
+		menu.add(1, 1, 1, "Refresh")
+				.setIcon(R.drawable.ic_refresh_inverse)
+				.setShowAsAction(
+						MenuItem.SHOW_AS_ACTION_ALWAYS
+								| MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+
+		// 新增一个search bar
+		menu.add(1, 2, 2, "Search")
+				.setIcon(R.drawable.ic_search_inverse)
+				.setActionView(R.layout.collapsible_edittext)
+				.setShowAsAction(
+						MenuItem.SHOW_AS_ACTION_ALWAYS
+								| MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+
+		// 从数据库当中查询新闻源
+		ContentResolver resolver = getActivity().getContentResolver();
+		String[] projection = { Sources.SRC_ID, Sources.SRC_NAME };
+		Cursor cursor = resolver.query(Sources.CONTENT_URI, projection, null,
+				null, null);
+
+		// 将源添加到submenu当中
+		SubMenu sub = menu.addSubMenu(1, 4, 4, "SOURCES");
+		sub.add(2, 5, 1, "全部");
+		if (cursor != null) {
+			for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor
+					.moveToNext()) {
+				String id = cursor.getString(cursor
+						.getColumnIndexOrThrow(Sources.SRC_ID));
+				String name = cursor.getString(cursor
+						.getColumnIndexOrThrow(Sources.SRC_NAME));
+				sub.add(2, Integer.parseInt(id) + 5, Integer.parseInt(id) + 1,
+						name);
+			}
+		}
+		sub.getItem().setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+		sub.getItem().setIcon(R.drawable.abs__ic_menu_moreoverflow_holo_light);
+
 		// 新增一个设置按钮
-		menu.add(1, 1, 1, "Setting")
+		menu.add(1, 3, 3, "Setting")
 				.setIcon(R.drawable.gear_setting)
 				.setShowAsAction(
 						MenuItem.SHOW_AS_ACTION_ALWAYS
@@ -173,16 +212,40 @@ public class MyListFragment extends SherlockListFragment {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Log.d(TAG, "Method:onOptionsItemSelected");
 		int id = item.getItemId();
+		String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
+				RSSInfo.PUB_DATE };
 		switch (id) {
 		case 1:
-			ViewPager pager = ((MainActivity)getActivity()).getViewPager();
-			TabsAdapter tab = ((MainActivity)getActivity()).getTabsAdapter(pager);
-			pager.setCurrentItem(tab.findTabByClassName(SettingFragment.class));
-			/*((MainActivity) getActivity()).getViewPager().setCurrentItem(
-					MainActivity.SETTING_FRAGMENT_POSITION);*/
+			doStopService();
+			doStartService();
+			break;
+		case 2:
+			Toast.makeText(getActivity(), "Search", Toast.LENGTH_SHORT).show();
+			break;
+		case 3:
+			ViewPager pager = ((MainActivity) getActivity()).getViewPager();
+			pager.setCurrentItem(TabsAdapter.SETTING_FRAGMENT_POSITION);
+			/*
+			 * ((MainActivity) getActivity()).getViewPager().setCurrentItem(
+			 * MainActivity.SETTING_FRAGMENT_POSITION,true);
+			 */
+			break;
+		case 4:
+			break;
+		case 5:
+			mCursor = getActivity().getContentResolver().query(
+					RSSInfo.CONTENT_URI, projection, null, null, null);
+			mAdapter = new MyListAdapter(getActivity(), mCursor);
+			setListAdapter(mAdapter);
 			break;
 		default:
-			return false;
+			int src_id = id - 5;
+			String[] selectionArgs = { Integer.toString(src_id) };
+			mCursor = getActivity().getContentResolver().query(
+					RSSInfo.CONTENT_URI, projection, RSSInfo.RES_ID + "= ?",
+					selectionArgs, null);
+			mAdapter = new MyListAdapter(getActivity(), mCursor);
+			setListAdapter(mAdapter);
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -237,11 +300,21 @@ public class MyListFragment extends SherlockListFragment {
 			Toast.makeText(getActivity(), "更新了 " + rows + "条数据",
 					Toast.LENGTH_SHORT).show();
 		}
+
+		String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
+				RSSInfo.PUB_DATE };
+		/* int[] to = { R.id.titleTV, R.id.pubdateTV }; */
+
+		mCursor = getActivity().getContentResolver().query(RSSInfo.CONTENT_URI,
+				projection, null, null, null);
+		mAdapter = new MyListAdapter(getActivity(), mCursor);
 		setListAdapter(mAdapter);
 
 		// Initing loader
-		getActivity().getSupportLoaderManager().restartLoader(0, null,
-				mLoaderCallBacks);
+		/*
+		 * getActivity().getSupportLoaderManager().restartLoader(0, null,
+		 * mLoaderCallBacks);
+		 */
 
 		// Config the PullToRefresh plugin
 		((PullToRefreshListView) getListView()).onRefreshComplete();
@@ -267,169 +340,6 @@ public class MyListFragment extends SherlockListFragment {
 	public void doStopService() {
 		Intent i = new Intent(getActivity(), TestService.class);
 		getActivity().stopService(i);
-	}
-
-	private final class ActionModeOfRSSInfo implements Callback {
-
-		@Override
-		public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-
-			// 新增一个刷新按钮
-			menu.add(1, 1, 1, "Refresh")
-					.setIcon(R.drawable.ic_refresh_inverse)
-					.setShowAsAction(
-							MenuItem.SHOW_AS_ACTION_ALWAYS
-									| MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-
-			// 新增一个search bar
-			menu.add(1, 2, 2, "Search")
-					.setIcon(R.drawable.ic_search_inverse)
-					.setActionView(R.layout.collapsible_edittext)
-					.setShowAsAction(
-							MenuItem.SHOW_AS_ACTION_ALWAYS
-									| MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-
-			// 从数据库当中查询新闻源
-			ContentResolver resolver = getActivity().getContentResolver();
-			String[] projection = { Sources.SRC_ID, Sources.SRC_NAME };
-			Cursor cursor = resolver.query(Sources.CONTENT_URI, projection,
-					null, null, null);
-
-			// 将源添加到submenu当中
-			SubMenu sub = menu.addSubMenu(1, 3, 3, "SOURCES");
-			if (cursor != null) {
-				for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor
-						.moveToNext()) {
-					String id = cursor.getString(cursor
-							.getColumnIndexOrThrow(Sources.SRC_ID));
-					String name = cursor.getString(cursor
-							.getColumnIndexOrThrow(Sources.SRC_NAME));
-					sub.add(0, Integer.parseInt(id), Integer.parseInt(id), name);
-				}
-			}
-			sub.getItem().setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-			sub.getItem().setIcon(R.drawable.filter);
-
-			// 新增一个设置按钮
-			menu.add(1, 4, 4, "Setting")
-					.setIcon(R.drawable.gear_setting)
-					.setShowAsAction(
-							MenuItem.SHOW_AS_ACTION_ALWAYS
-									| MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-			return true;
-		}
-
-		@Override
-		public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-			// TODO Auto-generated method stub
-			int id = item.getItemId();
-			switch (id) {
-			case 1:
-				doStopService();
-				doStartService();
-				break;
-			case 2:
-				Toast.makeText(getActivity(), "Search", Toast.LENGTH_SHORT)
-						.show();
-				break;
-			case 4:
-				ViewPager pager = ((MainActivity)getActivity()).getViewPager();
-				TabsAdapter tab = ((MainActivity)getActivity()).getTabsAdapter(pager);
-				pager.setCurrentItem(tab.findTabByClassName(SettingFragment.class));
-				/*((MainActivity) getActivity()).getViewPager().setCurrentItem(
-						MainActivity.SETTING_FRAGMENT_POSITION,true);*/
-				break;
-			default:
-				return false;
-			}
-			mode.finish();
-			return true;
-		}
-
-		@Override
-		public void onDestroyActionMode(ActionMode mode) {
-			// TODO Auto-generated method stub
-
-		}
-
-	}
-
-	private final class MyOnToucheListener implements OnTouchListener,
-			OnGestureListener {
-		private GestureDetector gestureScanner = new GestureDetector(
-				getActivity(), this);
-		@Override
-		public boolean onTouch(View v, MotionEvent event) {
-			//将该屏蔽的事件全部屏蔽掉
-			event.setAction(event.getAction() & mMask);
-			return gestureScanner.onTouchEvent(event);
-			/*
-			 * Log.d(TAG, "Method:onTouch，mTouchMovement = " + mTouchMovement);
-			 * //判断touch动作是否跟前一个touch动作一样，一样的话不用做出mode的改变。 if(mTouchMovement ==
-			 * event.getAction()){ return false; } else {
-			 * switch(event.getAction()) { case MotionEvent.ACTION_MOVE: mMode =
-			 * ((MainActivity)getActivity()).startActionMode(new
-			 * ActionModeOfRSSInfo()); mTouchMovement = MotionEvent.ACTION_DOWN;
-			 * break; case MotionEvent.ACTION_POINTER_UP: if(mMode != null) {
-			 * mMode.finish(); } mTouchMovement = MotionEvent.ACTION_UP; }
-			 * return false; }
-			 */
-		}
-
-		@Override
-		public boolean onDown(MotionEvent e) {
-			return false;
-		}
-
-		@Override
-		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
-				float velocityY) {
-			if(velocityY < 0) {
-				//在向下滑动的情况设定ActionMode
-				mMode = ((MainActivity)getActivity()).startActionMode(new ActionModeOfRSSInfo());
-				//屏蔽MotionEvent.ACTION_DOWN全部位
-				mMask = ~MotionEvent.ACTION_DOWN;
-			}else {
-				//再向上滑动的情况终止ActionMode
-				mMode.finish();
-				//取消屏蔽MotionEvent.ACTION_DOWN全部位
-				mMask = MotionEvent.ACTION_DOWN;
-			}
-/*			if(((velocityY < 0) && (mOffsetY > 0)) || ((velocityY < 0) && (mOffsetY < 0))) {
-				mMode = ((MainActivity) getActivity())
-						.startActionMode(new ActionModeOfRSSInfo());
-			}
-			mOffsetY = velocityY;*/
-			return false;
-		}
-
-		@Override
-		public void onLongPress(MotionEvent e) {
-		}
-
-		@Override
-		public boolean onScroll(MotionEvent e1, MotionEvent e2,
-				float distanceX, float distanceY) {
-			return false;
-		}
-
-		@Override
-		public void onShowPress(MotionEvent e) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public boolean onSingleTapUp(MotionEvent e) {
-			// TODO Auto-generated method stub
-			return false;
-		}
 	}
 
 	private class MyBroadcastReceiver extends BroadcastReceiver {

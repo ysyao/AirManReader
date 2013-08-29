@@ -86,10 +86,7 @@ public class ArticleFragment extends SherlockFragment {
 		switch (id) {
 		case 1:
 			ViewPager pager = ((MainActivity)getActivity()).getViewPager();
-			TabsAdapter tab = ((MainActivity)getActivity()).getTabsAdapter(pager);
-			pager.setCurrentItem(tab.findTabByClassName(MyListFragment.class));
-			/*((MainActivity) getActivity()).getViewPager().setCurrentItem(
-					MainActivity.MYLIST_FRAGMENT_POSITION,true);*/
+			pager.setCurrentItem(TabsAdapter.LIST_FRAGMENT_POSITION);
 			break;
 		default:
 			return false;

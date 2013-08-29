@@ -23,6 +23,7 @@ public class RSSInfoDatabase extends SQLiteOpenHelper{
 	private static final String CREATE_TABLE_RSSINFOS = "CREATE TABLE "
 			+ Tables.RSSINFOS + " (" + RSSInfo.INFO_ID
 			+ " INTEGER PRIMARY KEY AUTOINCREMENT," 
+			+ RSSInfo.RES_ID + " INTEGER NOT NULL,"
 			+ RSSInfo.TITLE	+ " TEXT NOT NULL," 
 			+ RSSInfo.LINK + " TEXT NOT NULL,"
 			+ RSSInfo.PUB_DATE + " TEXT NOT NULL);";
@@ -45,30 +46,6 @@ public class RSSInfoDatabase extends SQLiteOpenHelper{
 			+ "(" + Sources.SRC_NAME + "," + Sources.SRC_ADDR + ")"
 			+ "VALUES('หับü','http://rss.sports.sohu.com/rss/nba.xml');";
 	
-	private static final String INSERT_DATA1 = "INSERT INTO " + Tables.RSSINFOS
-			+ "(" + RSSInfo.TITLE + "," + RSSInfo.LINK + "," + RSSInfo.PUB_DATE
-			+ ")VALUES('Kobe is the best','https://www.kobe.com','2013/7/23')";
-
-	private static final String INSERT_DATA2 = "INSERT INTO "
-			+ Tables.RSSINFOS
-			+ "("
-			+ RSSInfo.TITLE
-			+ ","
-			+ RSSInfo.LINK
-			+ ","
-			+ RSSInfo.PUB_DATE
-			+ ")VALUES('James is the best','https://www.James.com','2013/7/23')";
-
-	private static final String INSERT_DATA3 = "INSERT INTO "
-			+ Tables.RSSINFOS
-			+ "("
-			+ RSSInfo.TITLE
-			+ ","
-			+ RSSInfo.LINK
-			+ ","
-			+ RSSInfo.PUB_DATE
-			+ ")VALUES('Jordan is the best','https://www.Jordan.com','2013/7/23')";
-
 	public RSSInfoDatabase(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
 		// TODO Auto-generated constructor stub
