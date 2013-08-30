@@ -32,6 +32,7 @@ import android.database.Cursor;
 import android.gesture.GestureOverlayView;
 import android.gesture.GestureOverlayView.OnGesturingListener;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
@@ -43,31 +44,33 @@ import android.view.GestureDetector.OnGestureListener;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MyListFragment extends SherlockListFragment {
 	public static final String TAG = "MyListFragment";
 	private static int rows = 0;
-
 	public TestService mBoundService;
-	/* private MyServiceConnection mConnection = new MyServiceConnection(); */
 	private MyLoaderCallBacks mLoaderCallBacks = new MyLoaderCallBacks();
 	private MyBroadcastReceiver mReceiver = new MyBroadcastReceiver();
+	private Handler mHandler;
 	IntentFilter mFilter = new IntentFilter("com.jimmy.rssreader.datareceiver");
-	/*
-	 * private MyHandler mHandler = new MyHandler(); private MyContentObserver
-	 * mObserver = new MyContentObserver(getActivity(), mHandler);
-	 */
 	Cursor mCursor;
 	OnItemSelected mListener;
 	SharedPreferences mSharedPreferences;
 	SharedPreferences.Editor mEditor;
-	MyListAdapter mAdapter;
+	PullToRefreshListView mListView;
+	SimpleCursorAdapter mAdapter;
+	View mFooterView;
+	TextView loadingTV;
+	ProgressBar loadingPB;
 	private String mUri = "";
 	int updateNum = 0;
 
@@ -112,40 +115,31 @@ public class MyListFragment extends SherlockListFragment {
 				"Method:onActivityCreated;Initalling the resources and Setting up the plugin PullToRefresh");
 		super.onCreate(savedInstanceState);
 
-		// Init every source
+		// 初始化各种资源
+		mHandler = new Handler();
 		mSharedPreferences = getActivity().getSharedPreferences(
 				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		mEditor = mSharedPreferences.edit();
+		mListView = (PullToRefreshListView) getActivity().findViewById(
+				android.R.id.list);
+		mFooterView = getLayoutInflater(null).inflate(R.layout.more_data, null);
+		mListView.addFooterView(mFooterView);
+		loadingTV = (TextView) getActivity().findViewById(R.id.loadingTV);
+		loadingPB = (ProgressBar) getActivity().findViewById(R.id.loadingPB);
+		
+		//将moredata.xml添加到listview最底部
+		mListView.setOnRefreshListener(new MyOnRefreshListener());
+		loadingTV.setOnClickListener(new MyOnClickListener());
+		mListView.setOnScrollListener(new MyOnScrollListener());
 
-		// 初始化from,to,设置simplecursoradapter
-		String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
-				RSSInfo.PUB_DATE };
-		/* int[] to = { R.id.titleTV, R.id.pubdateTV }; */
-
-		/*mCursor = getActivity().getContentResolver().query(RSSInfo.CONTENT_URI,
-				projection, null, null, null);
-		mAdapter = new MyListAdapter(getActivity(), mCursor);*/
-
-		/*
-		 * mAdapter = new SimpleCursorAdapter(getActivity(),
-		 * R.layout.rss_insert_row, null, from, to, 0);
-		 */
-		/*setListAdapter(mAdapter);*/
-		/*
-		 * getActivity().getSupportLoaderManager().initLoader(0, null,
-		 * mLoaderCallBacks);
-		 */
-
-		// 设置PullToRefreshListView插件
-		((PullToRefreshListView) getListView())
-				.setOnRefreshListener(new OnRefreshListener() {
-					@Override
-					public void onRefresh() {
-						// Do work to refresh the list here.
-						doStopService();
-						doStartService();
-					}
-				});
+		// 利用SimpleCursorAdapter填充数据
+		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE };
+		int[] to = { R.id.titleTV, R.id.pubdateTV };
+		getActivity().getSupportLoaderManager().initLoader(0, null,
+				mLoaderCallBacks);
+		mAdapter = new SimpleCursorAdapter(getActivity(),
+				R.layout.rss_insert_row, null, from, to, 0);
+		mListView.setAdapter(mAdapter);
 	}
 
 	@Override
@@ -212,8 +206,6 @@ public class MyListFragment extends SherlockListFragment {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Log.d(TAG, "Method:onOptionsItemSelected");
 		int id = item.getItemId();
-		String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
-				RSSInfo.PUB_DATE };
 		switch (id) {
 		case 1:
 			doStopService();
@@ -225,27 +217,35 @@ public class MyListFragment extends SherlockListFragment {
 		case 3:
 			ViewPager pager = ((MainActivity) getActivity()).getViewPager();
 			pager.setCurrentItem(TabsAdapter.SETTING_FRAGMENT_POSITION);
-			/*
-			 * ((MainActivity) getActivity()).getViewPager().setCurrentItem(
-			 * MainActivity.SETTING_FRAGMENT_POSITION,true);
-			 */
 			break;
 		case 4:
 			break;
 		case 5:
-			mCursor = getActivity().getContentResolver().query(
-					RSSInfo.CONTENT_URI, projection, null, null, null);
-			mAdapter = new MyListAdapter(getActivity(), mCursor);
-			setListAdapter(mAdapter);
+			getActivity().getSupportLoaderManager().restartLoader(0, null,
+					mLoaderCallBacks);
+			mAdapter.notifyDataSetChanged();
+			/*
+			 * cursor = getActivity().getContentResolver().query(
+			 * RSSInfo.CONTENT_URI, projection, null, null, null);
+			 * mAdapter.changeCursor(cursor); mAdapter.notifyDataSetChanged();
+			 */
 			break;
 		default:
 			int src_id = id - 5;
-			String[] selectionArgs = { Integer.toString(src_id) };
-			mCursor = getActivity().getContentResolver().query(
-					RSSInfo.CONTENT_URI, projection, RSSInfo.RES_ID + "= ?",
-					selectionArgs, null);
-			mAdapter = new MyListAdapter(getActivity(), mCursor);
-			setListAdapter(mAdapter);
+			/*
+			 * String[] selectionArgs = { Integer.toString(src_id) }; cursor =
+			 * getActivity().getContentResolver().query( RSSInfo.CONTENT_URI,
+			 * projection, RSSInfo.RES_ID + "= ?", selectionArgs, null);
+			 * mAdapter.changeCursor(cursor); mAdapter.notifyDataSetChanged();
+			 */
+			String selectionArgs = Integer.toString(src_id);
+			String selection = RSSInfo.RES_ID + "= ?";
+			Bundle b = new Bundle();
+			b.putString("selection", selection);
+			b.putString("selectionArgs", selectionArgs);
+			getActivity().getSupportLoaderManager().restartLoader(0, b,
+					mLoaderCallBacks);
+			mAdapter.notifyDataSetChanged();
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -265,15 +265,25 @@ public class MyListFragment extends SherlockListFragment {
 	public class MyLoaderCallBacks implements LoaderCallbacks<Cursor> {
 
 		@Override
-		public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
+		public Loader<Cursor> onCreateLoader(int arg0, Bundle bundle) {
 			// TODO Auto-generated method stub
 			Log.d(TAG,
 					"Method:onCreateLoader;Using cursorLoader to load the data which queryed from contentresolver");
 			String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
 					RSSInfo.PUB_DATE };
-			CursorLoaderNotAuto cursorLoader = new CursorLoaderNotAuto(
-					getActivity(), RSSInfo.CONTENT_URI, projection, null, null,
-					null);
+			CursorLoaderNotAuto cursorLoader = null;
+			if(bundle != null) {
+				String[] selectionArgs = { bundle.getString("selectionArgs") };
+				String selection = bundle.getString("selection");
+				cursorLoader = new CursorLoaderNotAuto(
+						getActivity(), RSSInfo.CONTENT_URI, projection, selection,
+						selectionArgs, null);
+			} else {
+				cursorLoader = new CursorLoaderNotAuto(
+						getActivity(), RSSInfo.CONTENT_URI, projection, null,
+						null, null);
+			}
+			
 			return cursorLoader;
 		}
 
@@ -301,23 +311,22 @@ public class MyListFragment extends SherlockListFragment {
 					Toast.LENGTH_SHORT).show();
 		}
 
-		String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
-				RSSInfo.PUB_DATE };
-		/* int[] to = { R.id.titleTV, R.id.pubdateTV }; */
+		getActivity().getSupportLoaderManager().restartLoader(0, null,
+				mLoaderCallBacks);
+		mAdapter.notifyDataSetChanged();
 
-		mCursor = getActivity().getContentResolver().query(RSSInfo.CONTENT_URI,
-				projection, null, null, null);
-		mAdapter = new MyListAdapter(getActivity(), mCursor);
-		setListAdapter(mAdapter);
-
-		// Initing loader
 		/*
-		 * getActivity().getSupportLoaderManager().restartLoader(0, null,
-		 * mLoaderCallBacks);
+		 * String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
+		 * RSSInfo.PUB_DATE }; Cursor cursor =
+		 * getActivity().getContentResolver().query(RSSInfo.CONTENT_URI,
+		 * projection, null, null, null); mAdapter.changeCursor(cursor);
+		 * mAdapter.notifyDataSetChanged();
 		 */
-
-		// Config the PullToRefresh plugin
-		((PullToRefreshListView) getListView()).onRefreshComplete();
+		/*
+		 * mAdapter = new MyListAdapter(getActivity(), mCursor);
+		 * setListAdapter(mAdapter);
+		 */
+		mListView.onRefreshComplete();
 	}
 
 	@Override
@@ -340,6 +349,54 @@ public class MyListFragment extends SherlockListFragment {
 	public void doStopService() {
 		Intent i = new Intent(getActivity(), TestService.class);
 		getActivity().stopService(i);
+	}
+
+	private class MyOnRefreshListener implements OnRefreshListener {
+
+		@Override
+		public void onRefresh() {
+			// TODO Auto-generated method stub
+			doStopService();
+			doStartService();
+		}
+	}
+
+	private class MyOnClickListener implements OnClickListener {
+
+		@Override
+		public void onClick(View v) {
+			Log.d(TAG, "MyOnClickListner run method");
+			loadingTV.setVisibility(View.GONE);
+			loadingPB.setVisibility(View.VISIBLE);
+			mHandler.postDelayed(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					getActivity().getSupportLoaderManager().restartLoader(0, null, mLoaderCallBacks);
+					mAdapter.notifyDataSetChanged();
+					loadingTV.setVisibility(View.VISIBLE);
+					loadingPB.setVisibility(View.GONE);
+				}
+			}, 2000);
+		}
+	}
+
+	private class MyOnScrollListener implements OnScrollListener {
+
+		@Override
+		public void onScroll(AbsListView view, int firstVisibleItem,
+				int visibleItemCount, int totalItemCount) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void onScrollStateChanged(AbsListView view, int scrollState) {
+			// TODO Auto-generated method stub
+
+		}
+
 	}
 
 	private class MyBroadcastReceiver extends BroadcastReceiver {

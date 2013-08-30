@@ -178,13 +178,22 @@ public class MainActivity extends SherlockFragmentActivity implements
 			Log.d(TAG, "Method:getItem(),position is " + position);
 			switch (position) {
 			case	LIST_FRAGMENT_POSITION:
-				return mMyListFragment = new MyListFragment();
+				if(mMyListFragment == null) {
+					mMyListFragment = new MyListFragment();
+				}
+				return mMyListFragment;
 			case	ARTICLE_FRAGMENT_POSITION:
-				return mArticleFragment = new ArticleFragment();
+				if(mArticleFragment == null) {
+					mArticleFragment = new ArticleFragment();
+				}
+				return mArticleFragment;
 			case	SETTING_FRAGMENT_POSITION:
-				return mSettingFragment = new SettingFragment();
+				if(mSettingFragment == null) {
+					mSettingFragment = new SettingFragment();
+				}
+				return mSettingFragment;
 			default:
-				return null;
+				return (mMyListFragment = new MyListFragment());
 			}
 		}
 
@@ -217,6 +226,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 			// TODO Auto-generated method stub
 			int position = tab.getPosition();
 			mViewPager.setCurrentItem(position);
+			this.getItem(position);
 		}
 
 		@Override
