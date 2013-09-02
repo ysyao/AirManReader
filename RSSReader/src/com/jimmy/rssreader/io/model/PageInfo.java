@@ -3,7 +3,7 @@ package com.jimmy.rssreader.io.model;
 public class PageInfo {
 	
 	private int current_num;
-	private int load_num = 0;
+	private int load_num = 5;
 	public int getCurrent_num() {
 		return current_num;
 	}

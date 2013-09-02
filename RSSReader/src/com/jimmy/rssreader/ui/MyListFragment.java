@@ -140,22 +140,11 @@ public class MyListFragment extends SherlockListFragment {
 
 		// 利用SimpleCursorAdapter填充数据
 		/*mHandler.postDelayed(new InitListView(), 1000);*/
-		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE };
-		int[] to = { R.id.titleTV, R.id.pubdateTV };
+		/*String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE };
+		int[] to = { R.id.titleTV, R.id.pubdateTV };*/
 		/*getActivity().getSupportLoaderManager().initLoader(0, null,
 				mLoaderCallBacks);*/
-		Bundle bundle = new Bundle();
-		int pagenum = mPageLoader.getLoad_num();
-		String orderBy = "ROWID LIMIT " + pagenum;
-		bundle.putString("orderBy", orderBy);
-		Loader<Cursor> loader = getActivity().getSupportLoaderManager().initLoader(0, bundle,
-				mLoaderCallBacks);
-		CursorLoader cLoder = (CursorLoader)loader;
-		mCursor = cLoder.loadInBackground();
-		/*mAdapter = new SimpleCursorAdapter(getActivity(),
-				R.layout.rss_insert_row, null, from, to, 0);*/
-		mAdapter = new MyListAdapter(getActivity(), mCursor);
-		mListView.setAdapter(mAdapter);
+		mHandler.post(new InitListView());
 	}
 
 	@Override
@@ -403,9 +392,7 @@ public class MyListFragment extends SherlockListFragment {
 				@Override
 				public void run() {
 					// TODO Auto-generated method stub
-					getActivity().getSupportLoaderManager().restartLoader(0,
-							null, mLoaderCallBacks);
-					mAdapter.notifyDataSetChanged();
+					mHandler.post(new RestartLoadListView());
 					loadingTV.setVisibility(View.VISIBLE);
 					loadingPB.setVisibility(View.GONE);
 				}
@@ -436,12 +423,31 @@ public class MyListFragment extends SherlockListFragment {
 		public void run() {			
 			Bundle bundle = new Bundle();
 			int pagenum = mPageLoader.getLoad_num();
-			String pagenumSelection = " limit ?,?";
-			bundle.putInt("pagenum", pagenum);
-			bundle.putString("pagenumSelection", pagenumSelection);
-			getActivity().getSupportLoaderManager().initLoader(0, bundle,
+			String orderBy = "ROWID LIMIT " + pagenum;
+			bundle.putString("orderBy", orderBy);
+			Loader<Cursor> loader = getActivity().getSupportLoaderManager().initLoader(0, bundle,
 					mLoaderCallBacks);
+			CursorLoader cLoder = (CursorLoader)loader;
+			mCursor = cLoder.loadInBackground();
+			mAdapter = new MyListAdapter(getActivity(), mCursor);
+			Log.d(TAG, "mCursor---" + mCursor.getColumnCount());
+			mListView.setAdapter(mAdapter);
 		}
+	}
+	
+	private class RestartLoadListView implements Runnable {
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			Bundle bundle = new Bundle();
+			int pagenum = mPageLoader.getLoad_num();
+			String orderBy = "ROWID LIMIT " + pagenum;
+			bundle.putString("orderBy", orderBy);
+			getActivity().getSupportLoaderManager().restartLoader(0, bundle, mLoaderCallBacks);
+			mAdapter.notifyDataSetChanged();
+		}
+		
 	}
 
 	private class MyBroadcastReceiver extends BroadcastReceiver {
@@ -453,7 +459,7 @@ public class MyListFragment extends SherlockListFragment {
 			rows = bundle.getInt("insertRows");
 			int type = bundle.getInt("type");
 			if (type == FetchRSSInfoService.REFRESH_TASK_TYPE) {
-				//fillData();
+				fillData();
 			} else if (type == FetchRSSInfoService.PERIODIC_TASK_TYPE) {
 				if (rows > 0) {
 					Toast.makeText(getActivity(), "你有" + rows + "条新数据未更新",

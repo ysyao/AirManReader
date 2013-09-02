@@ -37,10 +37,12 @@ public class MyListAdapter extends CursorAdapter {
 			holder = (ViewHolder)convertView.getTag();
 		}
 		if(c != null) {
+			c.moveToPosition(2);
+			Log.d(TAG, "The cursor in the mylistadapter is " + c.getString(c.getColumnIndex(RSSInfo.TITLE)));
 			//this.c.moveToPosition(position + 1);
-			for(c.moveToFirst();c.isAfterLast();c.moveToNext()) {
-				holder.title.setText(this.c.getString(this.c.getColumnIndexOrThrow(RSSInfo.TITLE)));
-				holder.date.setText(this.c.getString(this.c.getColumnIndexOrThrow(RSSInfo.PUB_DATE)));
+			for(c.moveToFirst();!c.isAfterLast();c.moveToNext()) {
+				holder.title.setText(c.getString(c.getColumnIndexOrThrow(RSSInfo.TITLE)));
+				holder.date.setText(c.getString(c.getColumnIndexOrThrow(RSSInfo.PUB_DATE)));
 			}
 		}
 		
