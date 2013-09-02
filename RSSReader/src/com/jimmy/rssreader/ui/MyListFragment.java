@@ -14,6 +14,7 @@ import com.jimmy.rssreader.async.FetchRSSInfoService;
 import com.jimmy.rssreader.async.TestService;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.contentprovider.RSSContact.Sources;
+import com.jimmy.rssreader.io.model.PageInfo;
 import com.jimmy.rssreader.ui.MainActivity.TabsAdapter;
 import com.jimmy.rssreader.ui.widget.MyListAdapter;
 import com.markupartist.android.widget.PullToRefreshListView;
@@ -35,6 +36,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SimpleCursorAdapter;
@@ -55,19 +57,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MyListFragment extends SherlockListFragment {
+
 	public static final String TAG = "MyListFragment";
 	private static int rows = 0;
 	public TestService mBoundService;
 	private MyLoaderCallBacks mLoaderCallBacks = new MyLoaderCallBacks();
 	private MyBroadcastReceiver mReceiver = new MyBroadcastReceiver();
 	private Handler mHandler;
+	private PageInfo mPageLoader;
 	IntentFilter mFilter = new IntentFilter("com.jimmy.rssreader.datareceiver");
 	Cursor mCursor;
 	OnItemSelected mListener;
 	SharedPreferences mSharedPreferences;
 	SharedPreferences.Editor mEditor;
 	PullToRefreshListView mListView;
-	SimpleCursorAdapter mAdapter;
+	MyListAdapter mAdapter;
 	View mFooterView;
 	TextView loadingTV;
 	ProgressBar loadingPB;
@@ -117,6 +121,8 @@ public class MyListFragment extends SherlockListFragment {
 
 		// 初始化各种资源
 		mHandler = new Handler();
+		mPageLoader = new PageInfo();
+		mPageLoader.setLoad_num(5);
 		mSharedPreferences = getActivity().getSharedPreferences(
 				getString(R.string.hold_container), Context.MODE_PRIVATE);
 		mEditor = mSharedPreferences.edit();
@@ -126,19 +132,29 @@ public class MyListFragment extends SherlockListFragment {
 		mListView.addFooterView(mFooterView);
 		loadingTV = (TextView) getActivity().findViewById(R.id.loadingTV);
 		loadingPB = (ProgressBar) getActivity().findViewById(R.id.loadingPB);
-		
-		//将moredata.xml添加到listview最底部
+
+		// 将moredata.xml添加到listview最底部
 		mListView.setOnRefreshListener(new MyOnRefreshListener());
 		loadingTV.setOnClickListener(new MyOnClickListener());
 		mListView.setOnScrollListener(new MyOnScrollListener());
 
 		// 利用SimpleCursorAdapter填充数据
+		/*mHandler.postDelayed(new InitListView(), 1000);*/
 		String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE };
 		int[] to = { R.id.titleTV, R.id.pubdateTV };
-		getActivity().getSupportLoaderManager().initLoader(0, null,
+		/*getActivity().getSupportLoaderManager().initLoader(0, null,
+				mLoaderCallBacks);*/
+		Bundle bundle = new Bundle();
+		int pagenum = mPageLoader.getLoad_num();
+		String orderBy = "ROWID LIMIT " + pagenum;
+		bundle.putString("orderBy", orderBy);
+		Loader<Cursor> loader = getActivity().getSupportLoaderManager().initLoader(0, bundle,
 				mLoaderCallBacks);
-		mAdapter = new SimpleCursorAdapter(getActivity(),
-				R.layout.rss_insert_row, null, from, to, 0);
+		CursorLoader cLoder = (CursorLoader)loader;
+		mCursor = cLoder.loadInBackground();
+		/*mAdapter = new SimpleCursorAdapter(getActivity(),
+				R.layout.rss_insert_row, null, from, to, 0);*/
+		mAdapter = new MyListAdapter(getActivity(), mCursor);
 		mListView.setAdapter(mAdapter);
 	}
 
@@ -231,6 +247,7 @@ public class MyListFragment extends SherlockListFragment {
 			 */
 			break;
 		default:
+			// 前面有5个menu菜单
 			int src_id = id - 5;
 			/*
 			 * String[] selectionArgs = { Integer.toString(src_id) }; cursor =
@@ -238,16 +255,27 @@ public class MyListFragment extends SherlockListFragment {
 			 * projection, RSSInfo.RES_ID + "= ?", selectionArgs, null);
 			 * mAdapter.changeCursor(cursor); mAdapter.notifyDataSetChanged();
 			 */
-			String selectionArgs = Integer.toString(src_id);
-			String selection = RSSInfo.RES_ID + "= ?";
+			String sourceId = Integer.toString(src_id);
+			String sourceSelection = RSSInfo.RES_ID + "= ?";
 			Bundle b = new Bundle();
-			b.putString("selection", selection);
-			b.putString("selectionArgs", selectionArgs);
+			b.putString("sourceSelection", sourceSelection);
+			b.putString("sourceId", sourceId);
 			getActivity().getSupportLoaderManager().restartLoader(0, b,
 					mLoaderCallBacks);
 			mAdapter.notifyDataSetChanged();
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onResume() {
+		// 当resume到本页面的时候，重载Loader当中的数据
+		super.onResume();
+		if(mAdapter != null || !mAdapter.equals("")){
+			getActivity().getSupportLoaderManager().restartLoader(0, null,
+					mLoaderCallBacks);
+			mAdapter.notifyDataSetChanged();
+		}
 	}
 
 	@Override
@@ -262,6 +290,10 @@ public class MyListFragment extends SherlockListFragment {
 		public void onItemSelected(int position);
 	}
 
+	public interface PageManager {
+
+	}
+
 	public class MyLoaderCallBacks implements LoaderCallbacks<Cursor> {
 
 		@Override
@@ -272,18 +304,28 @@ public class MyListFragment extends SherlockListFragment {
 			String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
 					RSSInfo.PUB_DATE };
 			CursorLoaderNotAuto cursorLoader = null;
-			if(bundle != null) {
-				String[] selectionArgs = { bundle.getString("selectionArgs") };
-				String selection = bundle.getString("selection");
-				cursorLoader = new CursorLoaderNotAuto(
-						getActivity(), RSSInfo.CONTENT_URI, projection, selection,
-						selectionArgs, null);
+			if (bundle != null) {
+				String id = bundle.getString("sourceId");
+				String sourceSelection = bundle.getString("sourceSelection");
+				String orderBy = bundle.getString("orderBy");
+				
+				String selection = null;
+				String[] selectionArgs = null;
+				if(id != null) {
+					String[] args = {
+							id
+							};
+					selection = sourceSelection;
+					selectionArgs = args;
+				} 
+				cursorLoader = new CursorLoaderNotAuto(getActivity(),
+						RSSInfo.CONTENT_URI, projection, selection,
+						selectionArgs, orderBy);
+				Log.d(TAG, "cursorLoader is loading ..." + orderBy);
 			} else {
-				cursorLoader = new CursorLoaderNotAuto(
-						getActivity(), RSSInfo.CONTENT_URI, projection, null,
-						null, null);
+				cursorLoader = new CursorLoaderNotAuto(getActivity(),
+						RSSInfo.CONTENT_URI, projection, null, null, null);
 			}
-			
 			return cursorLoader;
 		}
 
@@ -314,18 +356,6 @@ public class MyListFragment extends SherlockListFragment {
 		getActivity().getSupportLoaderManager().restartLoader(0, null,
 				mLoaderCallBacks);
 		mAdapter.notifyDataSetChanged();
-
-		/*
-		 * String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
-		 * RSSInfo.PUB_DATE }; Cursor cursor =
-		 * getActivity().getContentResolver().query(RSSInfo.CONTENT_URI,
-		 * projection, null, null, null); mAdapter.changeCursor(cursor);
-		 * mAdapter.notifyDataSetChanged();
-		 */
-		/*
-		 * mAdapter = new MyListAdapter(getActivity(), mCursor);
-		 * setListAdapter(mAdapter);
-		 */
 		mListView.onRefreshComplete();
 	}
 
@@ -373,7 +403,8 @@ public class MyListFragment extends SherlockListFragment {
 				@Override
 				public void run() {
 					// TODO Auto-generated method stub
-					getActivity().getSupportLoaderManager().restartLoader(0, null, mLoaderCallBacks);
+					getActivity().getSupportLoaderManager().restartLoader(0,
+							null, mLoaderCallBacks);
 					mAdapter.notifyDataSetChanged();
 					loadingTV.setVisibility(View.VISIBLE);
 					loadingPB.setVisibility(View.GONE);
@@ -399,6 +430,20 @@ public class MyListFragment extends SherlockListFragment {
 
 	}
 
+	private class InitListView implements Runnable {
+
+		@Override
+		public void run() {			
+			Bundle bundle = new Bundle();
+			int pagenum = mPageLoader.getLoad_num();
+			String pagenumSelection = " limit ?,?";
+			bundle.putInt("pagenum", pagenum);
+			bundle.putString("pagenumSelection", pagenumSelection);
+			getActivity().getSupportLoaderManager().initLoader(0, bundle,
+					mLoaderCallBacks);
+		}
+	}
+
 	private class MyBroadcastReceiver extends BroadcastReceiver {
 
 		@Override
@@ -408,7 +453,7 @@ public class MyListFragment extends SherlockListFragment {
 			rows = bundle.getInt("insertRows");
 			int type = bundle.getInt("type");
 			if (type == FetchRSSInfoService.REFRESH_TASK_TYPE) {
-				fillData();
+				//fillData();
 			} else if (type == FetchRSSInfoService.PERIODIC_TASK_TYPE) {
 				if (rows > 0) {
 					Toast.makeText(getActivity(), "你有" + rows + "条新数据未更新",

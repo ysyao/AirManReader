@@ -19,7 +19,6 @@ public class MyListAdapter extends CursorAdapter {
 	
 	public MyListAdapter(Context context, Cursor c) {
 		super(context, c);
-		c.moveToFirst();
 		this.mInflater = LayoutInflater.from(context);
 		this.c = c;
 	}
@@ -37,9 +36,13 @@ public class MyListAdapter extends CursorAdapter {
 		} else {
 			holder = (ViewHolder)convertView.getTag();
 		}
-		this.c.moveToPosition(position);
-		holder.title.setText(this.c.getString(this.c.getColumnIndex(RSSInfo.TITLE)));
-		holder.date.setText(this.c.getString(this.c.getColumnIndex(RSSInfo.PUB_DATE)));
+		if(c != null) {
+			//this.c.moveToPosition(position + 1);
+			for(c.moveToFirst();c.isAfterLast();c.moveToNext()) {
+				holder.title.setText(this.c.getString(this.c.getColumnIndexOrThrow(RSSInfo.TITLE)));
+				holder.date.setText(this.c.getString(this.c.getColumnIndexOrThrow(RSSInfo.PUB_DATE)));
+			}
+		}
 		
 		return convertView;
 	}
