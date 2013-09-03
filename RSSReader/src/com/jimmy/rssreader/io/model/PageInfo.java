@@ -1,20 +1,18 @@
 package com.jimmy.rssreader.io.model;
 
 public class PageInfo {
-	
-	private int current_num;
-	private int load_num = 5;
-	public int getCurrent_num() {
-		return current_num;
+	private int currentNum = 0;
+	private int everyLoadNum = 10;
+	public int getCurrentNum() {
+		return currentNum;
 	}
-	public void setCurrent_num(int current_num) {
-		this.current_num = current_num;
+	public int getEveryLoadNum() {
+		return everyLoadNum;
 	}
-	public int getLoad_num() {
-		return load_num;
+	public void setEveryLoadNum(int everyLoadNum) {
+		this.everyLoadNum = everyLoadNum;
 	}
-	public void setLoad_num(int load_num) {
-		this.load_num = load_num;
+	public int getLoad_num(){
+		return everyLoadNum; 
 	}
-
 }

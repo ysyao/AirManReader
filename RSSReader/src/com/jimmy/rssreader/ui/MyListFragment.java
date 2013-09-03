@@ -1,10 +1,6 @@
 package com.jimmy.rssreader.ui;
 
-import javax.xml.transform.Source;
-
 import com.actionbarsherlock.app.SherlockListFragment;
-import com.actionbarsherlock.view.ActionMode;
-import com.actionbarsherlock.view.ActionMode.Callback;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
@@ -19,35 +15,23 @@ import com.jimmy.rssreader.ui.MainActivity.TabsAdapter;
 import com.jimmy.rssreader.ui.widget.MyListAdapter;
 import com.markupartist.android.widget.PullToRefreshListView;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
-
 import android.app.Activity;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.gesture.GestureOverlayView;
-import android.gesture.GestureOverlayView.OnGesturingListener;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
-import android.view.GestureDetector;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
@@ -57,7 +41,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MyListFragment extends SherlockListFragment {
-
 	public static final String TAG = "MyListFragment";
 	private static int rows = 0;
 	public TestService mBoundService;
@@ -66,10 +49,8 @@ public class MyListFragment extends SherlockListFragment {
 	private Handler mHandler;
 	private PageInfo mPageLoader;
 	IntentFilter mFilter = new IntentFilter("com.jimmy.rssreader.datareceiver");
-	Cursor mCursor;
+	Loader<Cursor> mLoader;
 	OnItemSelected mListener;
-	SharedPreferences mSharedPreferences;
-	SharedPreferences.Editor mEditor;
 	PullToRefreshListView mListView;
 	MyListAdapter mAdapter;
 	View mFooterView;
@@ -114,6 +95,15 @@ public class MyListFragment extends SherlockListFragment {
 	}
 
 	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		// TODO Auto-generated method stub
+		super.onSaveInstanceState(outState);
+		if (mPageLoader != null) {
+			outState.putInt("pagenum", mPageLoader.getLoad_num());
+		}
+	}
+
+	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		Log.d(TAG,
 				"Method:onActivityCreated;Initalling the resources and Setting up the plugin PullToRefresh");
@@ -122,10 +112,9 @@ public class MyListFragment extends SherlockListFragment {
 		// 初始化各种资源
 		mHandler = new Handler();
 		mPageLoader = new PageInfo();
-		mPageLoader.setLoad_num(5);
-		mSharedPreferences = getActivity().getSharedPreferences(
-				getString(R.string.hold_container), Context.MODE_PRIVATE);
-		mEditor = mSharedPreferences.edit();
+		if (savedInstanceState != null) {
+			mPageLoader.setEveryLoadNum(savedInstanceState.getInt("pagenum"));
+		}
 		mListView = (PullToRefreshListView) getActivity().findViewById(
 				android.R.id.list);
 		mFooterView = getLayoutInflater(null).inflate(R.layout.more_data, null);
@@ -139,12 +128,33 @@ public class MyListFragment extends SherlockListFragment {
 		mListView.setOnScrollListener(new MyOnScrollListener());
 
 		// 利用SimpleCursorAdapter填充数据
-		/*mHandler.postDelayed(new InitListView(), 1000);*/
-		/*String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE };
-		int[] to = { R.id.titleTV, R.id.pubdateTV };*/
-		/*getActivity().getSupportLoaderManager().initLoader(0, null,
-				mLoaderCallBacks);*/
-		mHandler.post(new InitListView());
+		/* mHandler.postDelayed(new InitListView(), 1000); */
+		/*
+		 * String[] from = { RSSInfo.TITLE, RSSInfo.PUB_DATE }; int[] to = {
+		 * R.id.titleTV, R.id.pubdateTV };
+		 */
+		/*
+		 * getActivity().getSupportLoaderManager().initLoader(0, null,
+		 * mLoaderCallBacks);
+		 */
+		// 为ListView填充数据
+		Bundle b = new Bundle();
+		int pagenum = mPageLoader.getLoad_num();
+		String orderBy = RSSInfo.PUB_DATE + " DESC LIMIT " + pagenum;
+		b.putString("orderBy", orderBy);
+		mLoader = getActivity().getSupportLoaderManager().initLoader(0, b,
+				mLoaderCallBacks);
+		Cursor cursor = ((CursorLoader) mLoader).loadInBackground();
+		if (cursor.getCount() == 0) {
+			doStartService();
+		} else {
+
+		}
+		mAdapter = null;
+		/*
+		 * mAdapter = new MyListAdapter(getActivity(), ((CursorLoader)
+		 * mLoader).loadInBackground()); mListView.setAdapter(mAdapter);
+		 */
 	}
 
 	@Override
@@ -152,8 +162,6 @@ public class MyListFragment extends SherlockListFragment {
 		Log.d(TAG, "Method:onCreate");
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-		/* doBindService(); */
-		doStartService();
 	}
 
 	@Override
@@ -226,13 +234,10 @@ public class MyListFragment extends SherlockListFragment {
 		case 4:
 			break;
 		case 5:
-			getActivity().getSupportLoaderManager().restartLoader(0, null,
-					mLoaderCallBacks);
-			mAdapter.notifyDataSetChanged();
+			reloadData(null, null, mPageLoader.getLoad_num());
 			/*
-			 * cursor = getActivity().getContentResolver().query(
-			 * RSSInfo.CONTENT_URI, projection, null, null, null);
-			 * mAdapter.changeCursor(cursor); mAdapter.notifyDataSetChanged();
+			 * getActivity().getSupportLoaderManager().restartLoader(0, null,
+			 * mLoaderCallBacks); mAdapter.notifyDataSetChanged();
 			 */
 			break;
 		default:
@@ -246,25 +251,32 @@ public class MyListFragment extends SherlockListFragment {
 			 */
 			String sourceId = Integer.toString(src_id);
 			String sourceSelection = RSSInfo.RES_ID + "= ?";
-			Bundle b = new Bundle();
-			b.putString("sourceSelection", sourceSelection);
-			b.putString("sourceId", sourceId);
-			getActivity().getSupportLoaderManager().restartLoader(0, b,
-					mLoaderCallBacks);
-			mAdapter.notifyDataSetChanged();
+			reloadData(sourceId, sourceSelection, mPageLoader.getLoad_num());
+			/*
+			 * getActivity().getSupportLoaderManager().restartLoader(0, b,
+			 * mLoaderCallBacks); mAdapter.notifyDataSetChanged();
+			 */
 		}
 		return super.onOptionsItemSelected(item);
 	}
 
 	@Override
 	public void onResume() {
-		// 当resume到本页面的时候，重载Loader当中的数据
+		// 当resume到本页面的时候，如果没有mAdapter，加载数据，如果已经有了，重载Loader当中的数据
 		super.onResume();
-		if(mAdapter != null || !mAdapter.equals("")){
-			getActivity().getSupportLoaderManager().restartLoader(0, null,
-					mLoaderCallBacks);
-			mAdapter.notifyDataSetChanged();
+		if (mAdapter != null) {
+			reloadData(null, null, mAdapter.getCount());
+		} else {
+			mAdapter = new MyListAdapter(getActivity(),
+					((CursorLoader) mLoader).loadInBackground());
+			mListView.setAdapter(mAdapter);
 		}
+	}
+
+	@Override
+	public void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
 	}
 
 	@Override
@@ -279,10 +291,6 @@ public class MyListFragment extends SherlockListFragment {
 		public void onItemSelected(int position);
 	}
 
-	public interface PageManager {
-
-	}
-
 	public class MyLoaderCallBacks implements LoaderCallbacks<Cursor> {
 
 		@Override
@@ -293,42 +301,43 @@ public class MyListFragment extends SherlockListFragment {
 			String[] projection = { RSSInfo.INFO_ID, RSSInfo.TITLE,
 					RSSInfo.PUB_DATE };
 			CursorLoaderNotAuto cursorLoader = null;
+			String selection = null;
+			String[] selectionArgs = null;
+			String orderBy = null;
+
 			if (bundle != null) {
 				String id = bundle.getString("sourceId");
 				String sourceSelection = bundle.getString("sourceSelection");
-				String orderBy = bundle.getString("orderBy");
-				
-				String selection = null;
-				String[] selectionArgs = null;
-				if(id != null) {
-					String[] args = {
-							id
-							};
+				orderBy = bundle.getString("orderBy");
+
+				if (id != null) {
+					String[] args = { id };
 					selection = sourceSelection;
 					selectionArgs = args;
-				} 
-				cursorLoader = new CursorLoaderNotAuto(getActivity(),
-						RSSInfo.CONTENT_URI, projection, selection,
-						selectionArgs, orderBy);
-				Log.d(TAG, "cursorLoader is loading ..." + orderBy);
-			} else {
-				cursorLoader = new CursorLoaderNotAuto(getActivity(),
-						RSSInfo.CONTENT_URI, projection, null, null, null);
+				}
 			}
+			cursorLoader = new CursorLoaderNotAuto(getActivity(),
+					RSSInfo.CONTENT_URI, projection, selection, selectionArgs,
+					orderBy);
 			return cursorLoader;
 		}
 
 		@Override
 		public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 			Log.d(TAG, "Method:onLoadFinished;");
-			mAdapter.swapCursor(data);
+			if (mAdapter != null) {
+				mAdapter.swapCursor(data);
+			}
 		}
 
 		@Override
 		public void onLoaderReset(Loader<Cursor> loader) {
 			// TODO Auto-generated method stub
 			Log.d(TAG, "Method:onLoaderReset;");
-			mAdapter.swapCursor(null);
+			if (mAdapter != null) {
+				mAdapter.swapCursor(null);
+			}
+			
 		}
 	}
 
@@ -341,11 +350,20 @@ public class MyListFragment extends SherlockListFragment {
 			Toast.makeText(getActivity(), "更新了 " + rows + "条数据",
 					Toast.LENGTH_SHORT).show();
 		}
-
-		getActivity().getSupportLoaderManager().restartLoader(0, null,
-				mLoaderCallBacks);
-		mAdapter.notifyDataSetChanged();
+		// 更新ListView
+		reloadData(null, null, mPageLoader.getLoad_num());
+		// 刷新结束
 		mListView.onRefreshComplete();
+	}
+
+	private void reloadData(String sourceId, String sourceSelection, int pagenum) {
+		Bundle b = new Bundle();
+		String orderBy = RSSInfo.PUB_DATE + " DESC LIMIT " + pagenum;
+		b.putString("orderBy", orderBy);
+		b.putString("sourceSelection", sourceSelection);
+		b.putString("sourceId", sourceId);
+		b.putInt("pagenum", mPageLoader.getLoad_num());
+		mHandler.post(new UpdateListView(b));
 	}
 
 	@Override
@@ -392,7 +410,9 @@ public class MyListFragment extends SherlockListFragment {
 				@Override
 				public void run() {
 					// TODO Auto-generated method stub
-					mHandler.post(new RestartLoadListView());
+					int loaded = mAdapter.getCount();
+					int load = mPageLoader.getLoad_num() + loaded;
+					reloadData(null, null, load);
 					loadingTV.setVisibility(View.VISIBLE);
 					loadingPB.setVisibility(View.GONE);
 				}
@@ -401,53 +421,81 @@ public class MyListFragment extends SherlockListFragment {
 	}
 
 	private class MyOnScrollListener implements OnScrollListener {
+		int lastVisibleIndex;
 
 		@Override
 		public void onScroll(AbsListView view, int firstVisibleItem,
 				int visibleItemCount, int totalItemCount) {
-			// TODO Auto-generated method stub
-
+			Log.d(TAG, "OnScroll method");
+			lastVisibleIndex = firstVisibleItem + visibleItemCount - 1;
+			if (mAdapter != null && (totalItemCount == mAdapter.getCount())) {
+				mListView.removeFooterView(mFooterView);
+				Toast.makeText(getActivity(), "数据已经全部加载完成，没有更多数据",
+						Toast.LENGTH_SHORT).show();
+			}
 		}
 
 		@Override
 		public void onScrollStateChanged(AbsListView view, int scrollState) {
-			// TODO Auto-generated method stub
+			Log.d(TAG, "onStateChanged method");
+			if (scrollState == OnScrollListener.SCROLL_STATE_IDLE
+					&& lastVisibleIndex == mAdapter.getCount()) {
+				loadingTV.setVisibility(View.GONE);
+				loadingPB.setVisibility(View.VISIBLE);
+				mHandler.postDelayed(new Runnable() {
+
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						int loaded = mAdapter.getCount();
+						int load = mPageLoader.getLoad_num() + loaded;
+						reloadData(null, null, load);
+						loadingTV.setVisibility(View.VISIBLE);
+						loadingPB.setVisibility(View.GONE);
+					}
+				}, 2000);
+			}
 
 		}
 
 	}
 
-	private class InitListView implements Runnable {
+	private class UpdateListView implements Runnable {
+		private Bundle bundle;
 
-		@Override
-		public void run() {			
-			Bundle bundle = new Bundle();
-			int pagenum = mPageLoader.getLoad_num();
-			String orderBy = "ROWID LIMIT " + pagenum;
-			bundle.putString("orderBy", orderBy);
-			Loader<Cursor> loader = getActivity().getSupportLoaderManager().initLoader(0, bundle,
-					mLoaderCallBacks);
-			CursorLoader cLoder = (CursorLoader)loader;
-			mCursor = cLoder.loadInBackground();
-			mAdapter = new MyListAdapter(getActivity(), mCursor);
-			Log.d(TAG, "mCursor---" + mCursor.getColumnCount());
-			mListView.setAdapter(mAdapter);
+		public UpdateListView(Bundle bundle) {
+			this.bundle = bundle;
 		}
-	}
-	
-	private class RestartLoadListView implements Runnable {
 
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
-			Bundle bundle = new Bundle();
-			int pagenum = mPageLoader.getLoad_num();
-			String orderBy = "ROWID LIMIT " + pagenum;
-			bundle.putString("orderBy", orderBy);
-			getActivity().getSupportLoaderManager().restartLoader(0, bundle, mLoaderCallBacks);
-			mAdapter.notifyDataSetChanged();
+			// 在onCreate当中已经Init了,这里只能够restart
+			mLoader = getActivity().getSupportLoaderManager().restartLoader(0,
+					bundle, mLoaderCallBacks);
+			Cursor cursor = ((CursorLoader) mLoader).loadInBackground();
+			if (mAdapter == null) {
+				// 如果mAdapter还没有初始化，也就是说ListView还是第一次加载数据
+				mAdapter = new MyListAdapter(getActivity(), cursor);
+				mListView.setAdapter(mAdapter);
+			} else {
+				// 已经初始化过mAdapter了，listView重载数据
+				
+				mAdapter.notifyDataSetChanged();
+			}
+
+			for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor
+					.moveToNext()) {
+				Log.d(TAG,
+						"Inside updatelistview cursor datas"
+								+ cursor.getPosition()
+								+ ": "
+								+ cursor.getString(cursor
+										.getColumnIndexOrThrow(RSSInfo.TITLE))
+								+ ","
+								+ cursor.getString(cursor
+										.getColumnIndexOrThrow(RSSInfo.PUB_DATE)));
+			}
 		}
-		
 	}
 
 	private class MyBroadcastReceiver extends BroadcastReceiver {
