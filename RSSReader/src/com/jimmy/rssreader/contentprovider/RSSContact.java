@@ -24,6 +24,7 @@ public class RSSContact {
 	
 	public static final String PATH_RSSINFO = "rssinfos";
 	public static final String PATH_SOURCES = "sources";
+	public static final String PATH_SOURCE_FROM_RSS =  "sourcefromrss";
 	
 	public static class RSSInfo implements RSSInfoColumn,BaseColumns {
 		public static final Uri CONTENT_URI =
@@ -38,14 +39,26 @@ public class RSSContact {
 	}
 	
 	public static class Sources implements SourcesColumn,BaseColumns {
-		public static final Uri CONTENT_URI =
+		public static final Uri CONTENT_URI_SOURCE =
 				BASE_CONTENT_URI.buildUpon().appendPath(PATH_SOURCES).build();
 		
 		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/com.jimmy.rssreader.sources";
 		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/com.jimmy.rssreader.sources";
 		
 		public static final Uri buildSrcUri (String src_id) {
-			return CONTENT_URI.buildUpon().appendPath(src_id).build();
+			return CONTENT_URI_SOURCE.buildUpon().appendPath(src_id).build();
+		}
+	}
+	
+	public static class SourceFromRSS {
+		public static final Uri CONTENT_URI_SOURCE_FROM_RSS =
+				BASE_CONTENT_URI.buildUpon().appendPath(PATH_SOURCE_FROM_RSS).build();
+		
+		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/com.jimmy.rssreader.sourcesfromrss";
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/com.jimmy.rssreader.sourcesfromrss";
+		
+		public static final Uri buildSrcUri (String src_id) {
+			return CONTENT_URI_SOURCE_FROM_RSS.buildUpon().appendPath(src_id).build();
 		}
 	}
 }

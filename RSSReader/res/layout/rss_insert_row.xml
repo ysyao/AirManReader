@@ -19,6 +19,13 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="title" />
+            
+            <TextView
+                android:id="@+id/sourceTV"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="source" />
 
             <TextView
                 android:id="@+id/pubdateTV"

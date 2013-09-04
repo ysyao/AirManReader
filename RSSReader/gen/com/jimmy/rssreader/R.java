@@ -960,7 +960,7 @@ containing a value of this type.
         public static final int abs__textButton=0x7f050013;
         public static final int abs__title=0x7f05001b;
         public static final int abs__up=0x7f05000b;
-        public static final int action_settings=0x7f050042;
+        public static final int action_settings=0x7f050043;
         public static final int article=0x7f050033;
         public static final int articleFragmentTV=0x7f050032;
         public static final int article_fragment=0x7f050039;
@@ -974,7 +974,7 @@ containing a value of this type.
         public static final int loadingPB=0x7f050036;
         public static final int loadingTV=0x7f050035;
         public static final int normal=0x7f050001;
-        public static final int pubdateTV=0x7f050041;
+        public static final int pubdateTV=0x7f050042;
         public static final int pull_to_refresh_header=0x7f05003b;
         public static final int pull_to_refresh_image=0x7f05003d;
         public static final int pull_to_refresh_progress=0x7f05003c;
@@ -984,6 +984,7 @@ containing a value of this type.
         public static final int showCustom=0x7f050008;
         public static final int showHome=0x7f050005;
         public static final int showTitle=0x7f050007;
+        public static final int sourceTV=0x7f050041;
         public static final int tabMode=0x7f050003;
         public static final int titleTV=0x7f050040;
         public static final int useLogo=0x7f050004;

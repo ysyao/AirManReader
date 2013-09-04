@@ -5,6 +5,7 @@ import java.util.HashSet;
 
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfo;
 import com.jimmy.rssreader.contentprovider.RSSContact.RSSInfoColumn;
+import com.jimmy.rssreader.contentprovider.RSSContact.SourceFromRSS;
 import com.jimmy.rssreader.contentprovider.RSSContact.Sources;
 import com.jimmy.rssreader.contentprovider.RSSInfoDatabase.Tables;
 
@@ -29,6 +30,8 @@ public class RSSInfoProvider extends ContentProvider {
 	private static final int RSSINFOS_ID = 2;
 	private static final int SOURCES = 3;
 	private static final int SOURCES_ID = 4;
+	private static final int SOURCE_FROM_RSS = 5;
+	private static final int SOURCE_FROM_RSS_ID = 6;
 
 	private static UriMatcher builderUriMatcher() {
 		final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -38,6 +41,10 @@ public class RSSInfoProvider extends ContentProvider {
 		matcher.addURI(authority, RSSContact.PATH_RSSINFO + "/*", RSSINFOS_ID);
 		matcher.addURI(authority, RSSContact.PATH_SOURCES, SOURCES);
 		matcher.addURI(authority, RSSContact.PATH_SOURCES + "/*", SOURCES_ID);
+		matcher.addURI(authority, RSSContact.PATH_SOURCE_FROM_RSS,
+				SOURCE_FROM_RSS);
+		matcher.addURI(authority, RSSContact.PATH_SOURCE_FROM_RSS + "/*",
+				SOURCE_FROM_RSS_ID);
 		return matcher;
 	}
 
@@ -61,6 +68,10 @@ public class RSSInfoProvider extends ContentProvider {
 			return Sources.CONTENT_TYPE;
 		case SOURCES_ID:
 			return Sources.CONTENT_ITEM_TYPE;
+		case SOURCE_FROM_RSS:
+			return SourceFromRSS.CONTENT_TYPE;
+		case SOURCE_FROM_RSS_ID:
+			return SourceFromRSS.CONTENT_ITEM_TYPE;
 		default:
 			throw new UnsupportedOperationException("Unknow URI " + uri);
 		}
@@ -126,6 +137,24 @@ public class RSSInfoProvider extends ContentProvider {
 					+ uri.getLastPathSegment());
 			cursor = sourcesQueryBuilder.query(database, projection, selection,
 					selectionArgs, null, null, sortOrder, null);
+			break;
+		case SOURCE_FROM_RSS:
+			cursor = database
+					.rawQuery(
+							"SELECT a._id,a.title,b.name,a.pub_date FROM rssinfos a,sources b WHERE a.resource_id = b._id ORDER BY "
+									+ sortOrder, null);
+			break;
+		case SOURCE_FROM_RSS_ID:
+			Log.d(TAG, "there is the sql:SELECT a._id,a.title,b.name,a.pub_date FROM rssinfos a,sources b WHERE a.resource_id = b._id AND a.resource_id = "
+					+ uri.getLastPathSegment()
+					+ " ORDER BY "
+					+ sortOrder);
+			cursor = database
+					.rawQuery(
+							"SELECT a._id,a.title,b.name,a.pub_date FROM rssinfos a,sources b WHERE a.resource_id = b._id AND a.resource_id = "
+									+ uri.getLastPathSegment()
+									+ " ORDER BY "
+									+ sortOrder, null);
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown uri " + uri);

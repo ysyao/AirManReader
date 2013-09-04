@@ -15,7 +15,7 @@ public class RSSInfoDatabase extends SQLiteOpenHelper{
 	private static final String DATABASE_NAME = "rssinfo.db";
 	private static final int DATABASE_VERSION = 1;
 
-	interface Tables {
+	public interface Tables {
 		String RSSINFOS = "rssinfos";
 		String SOURCES = "sources";
 	}
