@@ -139,16 +139,23 @@ public class RSSInfoProvider extends ContentProvider {
 					selectionArgs, null, null, sortOrder, null);
 			break;
 		case SOURCE_FROM_RSS:
+			Log.d(TAG,
+					"There is the uri(SOURCE_FROM_RSS):"
+							+ uri.toString()
+							+ ".There is the sql:SELECT a._id,a.title,b.name,a.pub_date FROM rssinfos a,sources b WHERE a.resource_id = b._id ORDER BY "
+							+ sortOrder);
 			cursor = database
 					.rawQuery(
 							"SELECT a._id,a.title,b.name,a.pub_date FROM rssinfos a,sources b WHERE a.resource_id = b._id ORDER BY "
 									+ sortOrder, null);
 			break;
 		case SOURCE_FROM_RSS_ID:
-			Log.d(TAG, "there is the sql:SELECT a._id,a.title,b.name,a.pub_date FROM rssinfos a,sources b WHERE a.resource_id = b._id AND a.resource_id = "
-					+ uri.getLastPathSegment()
-					+ " ORDER BY "
-					+ sortOrder);
+			Log.d(TAG,
+					"There is the uri(SOURCE_FROM_RSS_ID):"
+							+ uri.toString()
+							+ ".There is the sql:SELECT a._id,a.title,b.name,a.pub_date FROM rssinfos a,sources b WHERE a.resource_id = b._id AND a.resource_id = "
+							+ uri.getLastPathSegment() + " ORDER BY "
+							+ sortOrder);
 			cursor = database
 					.rawQuery(
 							"SELECT a._id,a.title,b.name,a.pub_date FROM rssinfos a,sources b WHERE a.resource_id = b._id AND a.resource_id = "
