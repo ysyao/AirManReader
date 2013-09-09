@@ -1,7 +1,5 @@
 package com.jimmy.rssreader.ui;
 
-import java.util.ArrayList;
-
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.Tab;
 import com.actionbarsherlock.app.ActionBar.TabListener;
@@ -12,8 +10,6 @@ import com.jimmy.rssreader.ui.MyListFragment.OnItemSelected;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;

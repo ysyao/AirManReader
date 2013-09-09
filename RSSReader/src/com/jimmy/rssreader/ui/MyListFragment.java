@@ -45,6 +45,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MyListFragment extends SherlockListFragment {
+	
 	public static final String TAG = "MyListFragment";
 	private static int rows = 0;
 	public TestService mBoundService;
@@ -63,8 +64,8 @@ public class MyListFragment extends SherlockListFragment {
 	TextView queryIdTV;
 	ProgressBar loadingPB;
 	private String mUri = "";
-	int updateNum = 0;
-
+	
+	
 	@Override
 	public void onAttach(Activity activity) {
 		Log.d(TAG,
@@ -218,10 +219,6 @@ public class MyListFragment extends SherlockListFragment {
 			break;
 		case 5:
 			reloadData(null, mPageLoader.getLoad_num());
-			/*
-			 * getActivity().getSupportLoaderManager().restartLoader(0, null,
-			 * mLoaderCallBacks); mAdapter.notifyDataSetChanged();
-			 */
 			break;
 		default:
 			// 前面有5个menu菜单
@@ -430,9 +427,7 @@ public class MyListFragment extends SherlockListFragment {
 
 					@Override
 					public void run() {
-						// TODO Auto-generated method stub
-						int loaded = mAdapter.getCount();
-						int load = mPageLoader.getLoad_num() + loaded;
+						int load = mPageLoader.getLoad_num() + mAdapter.getCount();
 						reloadData(null, load);
 						loadingTV.setVisibility(View.VISIBLE);
 						loadingPB.setVisibility(View.GONE);
