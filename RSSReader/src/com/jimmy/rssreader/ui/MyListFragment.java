@@ -460,7 +460,8 @@ public class MyListFragment extends SherlockListFragment {
 			Log.d(TAG, "Method:onReceive");
 			Bundle bundle = intent.getExtras();
 			rows = bundle.getInt("insertRows");
-			int type = bundle.getInt("type");
+			fillData();
+			/*int type = bundle.getInt("type");
 			if (type == FetchRSSInfoService.REFRESH_TASK_TYPE) {
 				fillData();
 			} else if (type == FetchRSSInfoService.PERIODIC_TASK_TYPE) {
@@ -469,7 +470,7 @@ public class MyListFragment extends SherlockListFragment {
 							Toast.LENGTH_SHORT).show();
 					return;
 				}
-			}
+			}*/
 		}
 	}
 }
