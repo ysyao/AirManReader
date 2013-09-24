@@ -12,7 +12,7 @@ public class PageInfo {
 	public void setEveryLoadNum(int everyLoadNum) {
 		this.everyLoadNum = everyLoadNum;
 	}
-	public int getLoad_num(){
+	public int getLoadNum(){
 		return everyLoadNum; 
 	}
 }
